@@ -234,7 +234,7 @@
             { name: "露娜", role: "輔助", phy: 10, mag: 10, def: 0, spd: 0, skillName: "活下去", skillType: "增減益", triggerType: "被動", skillDesc: "嘲諷對手。死亡時將自身數值全數疊加給「炎拳」", hasCC: "是", ccDesc: "嘲諷" },
             { name: "t王", role: "輸出", phy: 9, mag: 9, def: 2, spd: 0, skillName: "欲戴王冠 必承其重", skillType: "物理輸出", triggerType: "回合技", skillDesc: "過量治療轉為[王冠]，回合發動時轉為[強攻]並精準轟炸恐懼目標", hasCC: "否", ccDesc: "" },
             { name: "喝酒司機", role: "輔助", phy: 2, mag: 8, def: 5, spd: 8, skillName: "喝不喝", skillType: "增減益", triggerType: "回合選擇", skillDesc: "喝酒後20%機率猝死、30%被抓監禁、50%得到自信", hasCC: "否", ccDesc: "" },
-            { name: "薩恩", role: "輸出", phy: 2, mag: 8, def: 4, spd: 6, skillName: "神罰「炎拳」", skillType: "魔法輸出", triggerType: "主動", skillDesc: "可選擇立刻處死我方一名隊員，若處死則繼承其數值與技能", hasCC: "是", ccDesc: "" },
+            { name: "薩恩", role: "輸出", phy: 2, mag: 8, def: 4, spd: 6, skillName: "神罰「炎拳」", skillType: "魔法輸出", triggerType: "主動", skillDesc: "處死我方一名隊員，繼承其全數值並將自身天生技能替換為該隊友技能", hasCC: "否", ccDesc: "" },
             { name: "黑手", role: "輸出", phy: 10, mag: 10, def: 3, spd: 7, skillName: "見沒見過黑社會", skillType: "物理輸出, 魔法輸出", triggerType: "追擊", skillDesc: "30%機率打出黑閃 (基礎傷害+200%)", hasCC: "否", ccDesc: "" },
             { name: "用覽趴共九陶", role: "坦克", phy: 0, mag: 0, def: 10, spd: 0, skillName: "挖ㄟ覽趴鬮里害", skillType: "真厲害覽趴", triggerType: "被動", skillDesc: "75%機率無視所有傷害與控制，並嘲諷所有人", hasCC: "否", ccDesc: "嘲諷" },
             { name: "BMPT-72", role: "輸出", phy: 8, mag: 0, def: 8, spd: 4, skillName: "30 mm 2A42 機炮", skillType: "物理輸出", triggerType: "主動", skillDesc: "75%使目標速度歸零且無法行動，25%直接摧毀目標", hasCC: "是", ccDesc: "繳械" },
@@ -664,11 +664,15 @@
 
                 // CAS Monster Opening Strike
                 if (f.isAlive && f.name === '凱斯芒斯特(CAS Monster)') {
-                    const enemies = battleState.fighters.filter(e => e.team !== f.team && e.isAlive);
-                    if (enemies.length > 0) {
+                    const aliveEnemies = battleState.fighters.filter(e => e.team !== f.team && e.isAlive);
+                    if (aliveEnemies.length > 0) {
                         logEvent(`🚀 [CAS Monster] 開局發射 6 枚 Kh-38MT 飛彈飽和打擊！`, 'text-amber-400 font-bold');
                         for(let i = 0; i < 6; i++) {
-                            const target = enemies[Math.floor(Math.random() * enemies.length)];
+                            // 動態重新過濾存活敵方目標，避免攻擊已死亡對象
+                            const currentEnemies = battleState.fighters.filter(e => e.team !== f.team && e.isAlive);
+                            if (currentEnemies.length === 0) break;
+                            
+                            const target = currentEnemies[Math.floor(Math.random() * currentEnemies.length)];
                             if (target && target.isAlive) {
                                 if (Math.random() < 0.8) {
                                     target.hp = 0;
@@ -686,18 +690,35 @@
             });
         }
 
+        // 取得合法的存活目標（優先處理嘲諷，自動排除已死亡角色）
+        function getValidTarget(attacker) {
+            const aliveEnemies = battleState.fighters.filter(f => f.team !== attacker.team && f.isAlive);
+            if (aliveEnemies.length === 0) return null;
+            
+            const tauntTarget = aliveEnemies.find(e => e.statuses.taunt);
+            if (tauntTarget) return tauntTarget;
+
+            return aliveEnemies[Math.floor(Math.random() * aliveEnemies.length)];
+        }
+
         function checkRoundEndTriggers() {
             // 戰斬 Round End Counter
             if (battleState.roundDamageTaken >= 1000) {
                 battleState.fighters.filter(f => f.isAlive && f.name === '戰斬').forEach(zz => {
                     const enemies = battleState.fighters.filter(e => e.team !== zz.team && e.isAlive);
-                    logEvent(`⚔️ [戰斬] 觸發【焙樋咎逝鷂樋茴覷】！團隊累積受傷過千，展開強烈反擊！`, 'text-red-400 font-bold');
-                    enemies.forEach(e => applyDamage(zz, e, 400, 'physical'));
+                    if (enemies.length > 0) {
+                        logEvent(`⚔️ [戰斬] 觸發【焙樋咎逝鷂樋茴覷】！團隊累積受傷過千，展開強烈反擊！`, 'text-red-400 font-bold');
+                        enemies.forEach(e => {
+                            if (e.isAlive) applyDamage(zz, e, 400, 'physical');
+                        });
+                    }
                 });
             }
         }
 
         function executeFighterTurn(attacker) {
+            if (!attacker.isAlive) return;
+
             if (attacker.statuses.imprisoned > 0) {
                 logEvent(`⛓️ [${attacker.name}] 處於【監禁】狀態，無法行動！`, 'text-purple-400 font-bold');
                 attacker.statuses.imprisoned--;
@@ -710,10 +731,9 @@
                 return;
             }
 
-            const enemies = battleState.fighters.filter(f => f.team !== attacker.team && f.isAlive);
-            if (enemies.length === 0) return;
-
-            let target = enemies.find(e => e.statuses.taunt) || enemies[Math.floor(Math.random() * enemies.length)];
+            // 取得存活敵人
+            let target = getValidTarget(attacker);
+            if (!target) return;
 
             if (attacker.name === '陳星偉') {
                 attacker.stacks.damageBoost *= 1.5;
@@ -739,13 +759,18 @@
             }
 
             if (attacker.isAlive && attacker.extraSkill && Math.random() < 0.45) {
-                logEvent(`🔮 [${attacker.name}] 發動副技能【${attacker.extraSkill.name}】！`, 'text-cyan-400');
-                executeGenericSkill(attacker, target, attacker.extraSkill);
+                // 再次確保目標存活
+                let skillTarget = getValidTarget(attacker);
+                if (skillTarget) {
+                    logEvent(`🔮 [${attacker.name}] 發動副技能【${attacker.extraSkill.name}】！`, 'text-cyan-400');
+                    executeGenericSkill(attacker, skillTarget, attacker.extraSkill);
+                }
             }
         }
 
         function applyDamage(attacker, defender, rawDmg, type = 'physical') {
-            if (!defender.isAlive) return 0;
+            // 若防守者已死亡，不執行傷害與判定
+            if (!defender || !defender.isAlive) return 0;
 
             if (defender.name === '牢大科比' && Math.random() < 0.5) {
                 logEvent(`🛡️ [牢大科比] 發動【牢大想你了】，完美閃避攻擊！`, 'text-emerald-400');
@@ -816,6 +841,18 @@
 
             fighter.hp = 0;
             fighter.isAlive = false;
+
+            // 清空所有負面狀態與效果
+            for (let key in fighter.statuses) {
+                if (typeof fighter.statuses[key] === 'boolean') {
+                    fighter.statuses[key] = false;
+                } else {
+                    fighter.statuses[key] = 0;
+                }
+            }
+            fighter.stacks.damageBoost = 1.0;
+            fighter.stacks.crown = 0;
+
             logEvent(`💀 [${fighter.name}] 陣亡離場！`, 'text-red-500 font-bold');
 
             if (fighter.name === '露娜') {
@@ -831,6 +868,12 @@
         }
 
         function executeSkill(user, target, skill) {
+            // 重新檢索確保目標依然存活
+            if (!target || !target.isAlive) {
+                target = getValidTarget(user);
+                if (!target) return;
+            }
+
             let dmg = 0;
             switch(user.name) {
                 case '柯文哲':
@@ -880,6 +923,34 @@
                     dmg = applyDamage(user, target, user.phy * 120, 'physical');
                     target.statuses.shieldBreak = 2;
                     logEvent(`👊 [黃伯超] 發動【超派鐵拳】，造成 ${dmg} 點穿防傷害！`, 'text-orange-500 font-bold');
+                    break;
+                case '薩恩':
+                    const aliveAllies = battleState.fighters.filter(f => f.team === user.team && f.isAlive && f.id !== user.id);
+                    if (aliveAllies.length > 0) {
+                        const victim = aliveAllies[Math.floor(Math.random() * aliveAllies.length)];
+                        
+                        // 繼承隊友數值
+                        user.phy += victim.phy;
+                        user.mag += victim.mag;
+                        user.def += victim.def;
+                        user.spd += victim.spd;
+                        
+                        // 替換天生技能
+                        const oldSkillName = user.intrinsicSkill.name;
+                        user.intrinsicSkill = { ...victim.intrinsicSkill };
+
+                        // 處死隊友
+                        victim.hp = 0;
+                        victim.isAlive = false;
+
+                        logEvent(`🗡️ [薩恩] 發動【神罰「炎拳」】，強行處死隊友 [${victim.name}]！`, 'text-red-400 font-bold');
+                        logEvent(`⚡ [薩恩] 繼承其屬性 (物+${victim.phy}, 魔+${victim.mag}, 防+${victim.def}, 速+${victim.spd})，並將天生技能【${oldSkillName}】替換為【${user.intrinsicSkill.name}】！`, 'text-amber-300 font-bold');
+                        
+                        checkDeath(victim, user);
+                    } else {
+                        dmg = applyDamage(user, target, (user.phy + user.mag) * 45 + 150, 'magical');
+                        logEvent(`✨ [薩恩] (無可處死隊友) 發動魔法攻擊，對 [${target.name}] 造成 ${dmg} 點傷害！`, 'text-cyan-300');
+                    }
                     break;
                 case '家暴王':
                     target.statuses.shieldBreak = 2;
