@@ -1,1119 +1,922 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>偉大計劃 - 網頁對戰模擬器</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;600;800&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Noto Sans TC', sans-serif;
-            background-color: #0f172a;
-            color: #f8fafc;
-        }
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: #1e293b;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #475569;
-            border-radius: 3px;
-        }
-        .hp-bar-fill {
-            transition: width 0.3s ease-in-out, background-color 0.3s;
-        }
-        @keyframes pulse-highlight {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.03); }
-        }
-        .active-turn {
-            animation: pulse-highlight 1.5s infinite;
-            border-color: #3b82f6 !important;
-        }
-        .tooltip-box {
-            display: none;
-            position: absolute;
-            z-index: 100;
-            pointer-events: none;
-            transition: opacity 0.2s ease-in-out;
-        }
-        .has-tooltip:hover .tooltip-box {
-            display: block;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>偉大計劃 - 網頁對戰模擬器</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Vue 3 CDN -->
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <!-- FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body {
+      background-color: #0f172a;
+      color: #f8fafc;
+      font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #1e293b;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #475569;
+      border-radius: 3px;
+    }
+    .tooltip-card {
+      pointer-events: none;
+      transition: opacity 0.15s ease-in-out;
+    }
+  </style>
 </head>
 <body class="min-h-screen flex flex-col">
-
-    <!-- Header -->
-    <header class="bg-slate-900/80 backdrop-blur border-b border-slate-800 sticky top-0 z-50 px-4 py-3">
-        <div class="max-w-7xl mx-auto flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <div class="bg-gradient-to-tr from-amber-500 to-red-600 text-white p-2 rounded-xl shadow-lg">
-                    <i class="fa-solid font-bold fa-swords text-xl"></i>
-                </div>
-                <div>
-                    <h1 class="text-xl font-extrabold tracking-wide bg-gradient-to-r from-amber-400 via-orange-300 to-red-400 bg-clip-text text-transparent">
-                        偉大計劃 對戰模擬器
-                    </h1>
-                    <p class="text-xs text-slate-400">專屬角色與技能動態決鬥平台 (GitHub 完整版)</p>
-                </div>
-            </div>
-            <nav class="flex items-center gap-2">
-                <button onclick="switchTab('arena')" id="nav-arena" class="px-4 py-2 text-sm font-semibold rounded-lg bg-blue-600 text-white transition hover:bg-blue-500">
-                    <i class="fa-solid fa-gamepad mr-1.5"></i>對戰擂台
-                </button>
-                <button onclick="switchTab('codex')" id="nav-codex" class="px-4 py-2 text-sm font-semibold rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 transition">
-                    <i class="fa-solid fa-book mr-1.5"></i>圖鑑與技能
-                </button>
-            </nav>
+  <div id="app" class="flex-grow flex flex-col">
+    <!-- Header Navigation -->
+    <header class="bg-slate-900 border-b border-slate-800 sticky top-0 z-40 shadow-lg">
+      <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-red-600 flex items-center justify-center font-black text-xl shadow-md">
+            偉
+          </div>
+          <div>
+            <h1 class="text-xl font-bold bg-gradient-to-r from-amber-400 via-orange-300 to-red-400 bg-clip-text text-transparent">
+              偉大計劃對戰模擬器
+            </h1>
+            <p class="text-xs text-slate-400">自訂卡牌對戰與流派推演系統 v2.5</p>
+          </div>
         </div>
+
+        <!-- Mode Select & Tabs -->
+        <div class="flex items-center space-x-2">
+          <div class="bg-slate-800 p-1 rounded-lg flex text-sm">
+            <button @click="currentTab = 'battle'" :class="currentTab === 'battle' ? 'bg-amber-600 text-white font-bold' : 'text-slate-400 hover:text-slate-200'" class="px-3 py-1.5 rounded-md transition">
+              <i class="fa-solid fa-swords mr-1"></i> 模擬對戰
+            </button>
+            <button @click="currentTab = 'codex_char'" :class="currentTab === 'codex_char' ? 'bg-amber-600 text-white font-bold' : 'text-slate-400 hover:text-slate-200'" class="px-3 py-1.5 rounded-md transition">
+              <i class="fa-solid fa-users mr-1"></i> 角色圖鑑
+            </button>
+            <button @click="currentTab = 'codex_skill'" :class="currentTab === 'codex_skill' ? 'bg-amber-600 text-white font-bold' : 'text-slate-400 hover:text-slate-200'" class="px-3 py-1.5 rounded-md transition">
+              <i class="fa-solid fa-book-sparkles mr-1"></i> 通用技能庫
+            </button>
+          </div>
+        </div>
+      </div>
     </header>
 
-    <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 gap-6">
-
-        <!-- TAB 1: ARENA (BATTLE SIMULATOR) -->
-        <div id="tab-arena" class="space-y-6">
-            
-            <!-- Setup Panel -->
-            <div id="setup-panel" class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl">
-                <div class="flex flex-wrap items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-800">
-                    <div>
-                        <h2 class="text-lg font-bold text-slate-100 flex items-center gap-2">
-                            <i class="fa-solid fa-users-gear text-amber-400"></i> 對陣陣容設定
-                        </h2>
-                        <p class="text-xs text-slate-400 mt-1">挑選登場角色與副技能，滑鼠懸停可開啟完整動態數值與技能說明。</p>
-                    </div>
-                    <div class="flex items-center gap-3">
-                        <label class="text-xs text-slate-400 font-semibold">對戰模式：</label>
-                        <select id="mode-select" onchange="changeBattleMode(this.value)" class="bg-slate-800 border border-slate-700 text-sm rounded-lg px-3 py-1.5 font-medium text-slate-200 focus:outline-none focus:border-blue-500">
-                            <option value="1">1 vs 1 單挑</option>
-                            <option value="3" selected>3 vs 3 小隊戰</option>
-                            <option value="5">5 vs 5 大混戰</option>
-                        </select>
-                        <button onclick="randomizeTeams()" class="bg-slate-800 hover:bg-slate-700 text-xs text-amber-300 font-semibold px-3 py-2 rounded-lg border border-slate-700 transition flex items-center gap-1">
-                            <i class="fa-solid fa-dice"></i> 隨機陣容
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Teams Picker Grid -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <!-- Blue Team -->
-                    <div class="bg-blue-950/20 border border-blue-900/40 rounded-xl p-4">
-                        <div class="flex items-center justify-between mb-3">
-                            <span class="text-sm font-bold text-blue-400 flex items-center gap-2">
-                                <i class="fa-solid fa-shield-halved"></i> 藍方隊伍 (Alpha)
-                            </span>
-                        </div>
-                        <div id="blue-team-slots" class="space-y-4"></div>
-                    </div>
-
-                    <!-- Red Team -->
-                    <div class="bg-red-950/20 border border-red-900/40 rounded-xl p-4">
-                        <div class="flex items-center justify-between mb-3">
-                            <span class="text-sm font-bold text-red-400 flex items-center gap-2">
-                                <i class="fa-solid fa-swords"></i> 紅方隊伍 (Beta)
-                            </span>
-                        </div>
-                        <div id="red-team-slots" class="space-y-4"></div>
-                    </div>
-                </div>
-
-                <!-- Action Button -->
-                <div class="mt-6 flex justify-center">
-                    <button onclick="startBattle()" class="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 font-black text-lg rounded-xl shadow-lg shadow-orange-950/50 transition transform hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-play"></i> 開 始 模 擬 對 戰
-                    </button>
-                </div>
+    <!-- Main Content Area -->
+    <main class="flex-grow max-w-7xl w-full mx-auto p-4 flex flex-col">
+      <!-- 1. BATTLE SIMULATION TAB -->
+      <div v-if="currentTab === 'battle'" class="flex-grow flex flex-col space-y-6">
+        <!-- Battle Control Bar -->
+        <div class="bg-slate-800/80 backdrop-blur rounded-2xl p-4 border border-slate-700 shadow-lg flex flex-wrap items-center justify-between gap-4">
+          <div class="flex items-center space-x-4">
+            <span class="text-sm font-semibold text-slate-300"><i class="fa-solid fa-sliders text-amber-400 mr-1"></i> 對戰模式：</span>
+            <div class="inline-flex rounded-lg bg-slate-900 p-1 border border-slate-700">
+              <button v-for="m in [1, 3, 5]" :key="m" @click="changeBattleMode(m)" :class="battleMode === m ? 'bg-amber-500 text-slate-950 font-bold' : 'text-slate-400 hover:text-white'" class="px-3 py-1 text-xs rounded-md transition">
+                {{ m }}v{{ m }}
+              </button>
             </div>
+            <button @click="randomizeTeams" class="text-xs bg-slate-700 hover:bg-slate-600 text-amber-300 border border-amber-500/30 px-3 py-1.5 rounded-lg transition">
+              <i class="fa-solid fa-dice mr-1"></i> 隨機生成陣容
+            </button>
+          </div>
 
-            <!-- Battle Arena Visuals & Controls -->
-            <div id="battle-panel" class="hidden space-y-6">
-                <!-- Control Bar -->
-                <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 flex flex-wrap items-center justify-between gap-3 shadow-lg">
-                    <div class="flex items-center gap-2">
-                        <button id="btn-pause" onclick="togglePause()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg border border-slate-700 transition flex items-center gap-1.5">
-                            <i id="icon-pause" class="fa-solid fa-pause"></i> <span id="text-pause">暫停</span>
-                        </button>
-                        <button onclick="stepTurn()" id="btn-step" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg border border-slate-700 transition flex items-center gap-1.5">
-                            <i class="fa-solid fa-forward-step"></i> 單步執行
-                        </button>
-                        <button onclick="restartBattle()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-amber-400 text-xs font-semibold rounded-lg border border-slate-700 transition flex items-center gap-1.5">
-                            <i class="fa-solid fa-rotate-left"></i> 滿血重置對戰
-                        </button>
-                        <button onclick="returnToSetup()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-lg border border-slate-700 transition flex items-center gap-1.5">
-                            <i class="fa-solid fa-sliders"></i> 返回陣容調整
-                        </button>
+          <div class="flex items-center space-x-2">
+            <button v-if="!battleInProgress" @click="startBattle" class="bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-bold px-5 py-2 rounded-xl shadow-lg transition flex items-center space-x-2">
+              <i class="fa-solid fa-play"></i>
+              <span>開始對戰</span>
+            </button>
+            <template v-else>
+              <button @click="stepTurn" class="bg-amber-600 hover:bg-amber-500 text-white font-bold px-4 py-2 rounded-xl shadow transition">
+                <i class="fa-solid fa-forward-step mr-1"></i> 單步執行
+              </button>
+              <button @click="toggleAutoPlay" :class="isAutoPlaying ? 'bg-rose-600 hover:bg-rose-500' : 'bg-indigo-600 hover:bg-indigo-500'" class="text-white font-bold px-4 py-2 rounded-xl shadow transition">
+                <i :class="isAutoPlaying ? 'fa-solid fa-pause' : 'fa-solid fa-bolt'" class="mr-1"></i>
+                {{ isAutoPlaying ? '暫停自動' : '自動進行' }}
+              </button>
+            </template>
+            <button @click="resetBattle" class="bg-slate-700 hover:bg-slate-600 text-slate-200 font-semibold px-4 py-2 rounded-xl border border-slate-600 transition">
+              <i class="fa-solid fa-rotate-right mr-1"></i> 重置戰局
+            </button>
+          </div>
+        </div>
+
+        <!-- Team Setup / Combat View -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-grow">
+          <!-- TEAM A -->
+          <div class="lg:col-span-4 flex flex-col space-y-4">
+            <div class="bg-slate-800/90 rounded-2xl p-4 border-2 border-blue-500/40 shadow-xl">
+              <div class="flex justify-between items-center mb-3">
+                <h2 class="text-lg font-black text-blue-400 flex items-center">
+                  <i class="fa-solid fa-shield-halved mr-2"></i> 隊伍 A (藍方)
+                </h2>
+                <span class="text-xs px-2 py-0.5 rounded bg-blue-950 text-blue-300 border border-blue-800">
+                  存活: {{ getAliveCount('A') }} / {{ battleMode }}
+                </span>
+              </div>
+
+              <!-- Character Cards Setup & Status -->
+              <div class="space-y-3">
+                <div v-for="(slot, idx) in teamA" :key="'A-'+idx" class="bg-slate-900/90 rounded-xl p-3 border border-slate-700 hover:border-blue-500/60 transition relative">
+                  <!-- Selection Dropdowns (Before Battle) -->
+                  <div v-if="!battleInProgress" class="space-y-2">
+                    <div class="flex items-center space-x-2">
+                      <span class="text-xs text-blue-400 font-bold">席位 {{ idx + 1 }}:</span>
+                      <select v-model="slot.characterName" @change="onCharacterSelect('A', idx)" class="bg-slate-800 text-slate-100 text-sm rounded-lg px-2 py-1 border border-slate-600 flex-grow focus:outline-none focus:border-blue-400">
+                        <option v-for="c in availableCharacters('A', slot.characterName)" :key="c.name" :value="c.name" :disabled="c.disabled">
+                          {{ c.name }} {{ c.disabled ? '(同隊已選)' : '' }}
+                        </option>
+                      </select>
                     </div>
 
-                    <div class="flex items-center gap-4">
-                        <div class="flex items-center gap-2">
-                            <span class="text-xs text-slate-400 font-semibold">對戰速度：</span>
-                            <button onclick="setSpeed(1000)" class="speed-btn px-2.5 py-1 text-xs rounded bg-blue-600 text-white font-bold" data-speed="1000">1x</button>
-                            <button onclick="setSpeed(400)" class="speed-btn px-2.5 py-1 text-xs rounded bg-slate-800 text-slate-300 font-bold" data-speed="400">2x</button>
-                            <button onclick="setSpeed(50)" class="speed-btn px-2.5 py-1 text-xs rounded bg-slate-800 text-slate-300 font-bold" data-speed="50">極速</button>
-                        </div>
-                        <div class="text-xs text-slate-400 font-mono">
-                            回合: <span id="turn-counter" class="text-amber-400 font-bold">1</span>
-                        </div>
+                    <!-- Secondary Skill Pick -->
+                    <div class="flex items-center space-x-2">
+                      <span class="text-xs text-slate-400">通用副技:</span>
+                      <select v-model="slot.secondarySkillName" @change="onSkillSelect('A', idx)" class="bg-slate-800 text-slate-200 text-xs rounded-lg px-2 py-1 border border-slate-700 flex-grow">
+                        <option value="">(無額外技能)</option>
+                        <option v-for="s in availableSkills('A', slot.secondarySkillName)" :key="s.name" :value="s.name" :disabled="s.disabled">
+                          {{ s.name }} {{ s.disabled ? '(同隊已裝備)' : '' }}
+                        </option>
+                      </select>
                     </div>
-                </div>
+                  </div>
 
-                <!-- Battle Field Visual Stage -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <!-- Blue Team Live Cards -->
-                    <div class="bg-slate-900/90 border border-blue-900/30 rounded-2xl p-4 shadow-xl">
-                        <h3 class="text-xs font-bold text-blue-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                            <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span> 藍方陣營
-                        </h3>
-                        <div id="blue-field" class="space-y-3"></div>
-                    </div>
-
-                    <!-- Red Team Live Cards -->
-                    <div class="bg-slate-900/90 border border-red-900/30 rounded-2xl p-4 shadow-xl">
-                        <h3 class="text-xs font-bold text-red-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                            <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span> 紅方陣營
-                        </h3>
-                        <div id="red-field" class="space-y-3"></div>
-                    </div>
-                </div>
-
-                <!-- Combat Log Viewer -->
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl flex flex-col h-80">
-                    <div class="flex items-center justify-between pb-2 border-b border-slate-800 mb-2">
-                        <span class="text-xs font-bold text-slate-300 flex items-center gap-1.5">
-                            <i class="fa-solid fa-list-check text-amber-400"></i> 對戰即時戰報 LOG
+                  <!-- Character Display Card -->
+                  <div class="mt-2 flex flex-col space-y-2">
+                    <div class="flex justify-between items-start">
+                      <div class="flex items-center space-x-2" @mouseenter="showTooltip($event, getCharData(slot.characterName))" @mouseleave="hideTooltip">
+                        <span class="font-bold text-slate-100 cursor-pointer hover:text-blue-300 underline decoration-blue-500/40">
+                          {{ slot.characterName }}
                         </span>
-                        <button onclick="clearLog()" class="text-[11px] text-slate-500 hover:text-slate-300 transition">清空戰報</button>
+                        <span class="text-xs px-1.5 py-0.5 rounded bg-slate-800 text-amber-400 border border-slate-700">
+                          {{ getCharData(slot.characterName)?.position || '全能' }}
+                        </span>
+                      </div>
+                      <span class="text-xs font-mono text-slate-400">速: {{ slot.currentStats.speed }}</span>
                     </div>
-                    <div id="combat-log" class="flex-1 overflow-y-auto custom-scrollbar font-mono text-xs space-y-1.5 pr-2"></div>
+
+                    <!-- HP Bar -->
+                    <div class="w-full bg-slate-950 rounded-full h-3.5 overflow-hidden border border-slate-800 relative">
+                      <div class="bg-gradient-to-r from-emerald-500 to-green-400 h-full transition-all duration-300" :style="{ width: getHpPercent(slot) + '%' }"></div>
+                      <span class="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-white drop-shadow">
+                        {{ slot.currentHp }} / {{ slot.maxHp }} HP
+                      </span>
+                    </div>
+
+                    <!-- Active Skills Preview -->
+                    <div class="text-[11px] text-slate-300 space-y-1 bg-slate-950/60 p-2 rounded-lg border border-slate-800">
+                      <div class="flex items-center justify-between" @mouseenter="showTooltip($event, { title: '天生技能: ' + slot.intrinsicSkill.name, desc: slot.intrinsicSkill.desc })" @mouseleave="hideTooltip">
+                        <span class="text-amber-400 font-semibold truncate cursor-pointer"><i class="fa-solid fa-gem mr-1"></i> {{ slot.intrinsicSkill.name }}</span>
+                        <span class="text-[9px] text-slate-400">{{ slot.intrinsicSkill.type }}</span>
+                      </div>
+                      <div v-if="slot.secondarySkill" class="flex items-center justify-between" @mouseenter="showTooltip($event, { title: '副技能: ' + slot.secondarySkill.name, desc: slot.secondarySkill.desc })" @mouseleave="hideTooltip">
+                        <span class="text-teal-300 font-semibold truncate cursor-pointer"><i class="fa-solid fa-bolt mr-1"></i> {{ slot.secondarySkill.name }}</span>
+                        <span class="text-[9px] text-slate-400">{{ slot.secondarySkill.type }}</span>
+                      </div>
+                    </div>
+
+                    <!-- Status Badges -->
+                    <div class="flex flex-wrap gap-1 mt-1">
+                      <span v-for="(val, statusKey) in activeStatuses(slot)" :key="statusKey" class="text-[10px] px-1.5 py-0.5 rounded font-bold border" :class="getStatusBadgeClass(statusKey)">
+                        {{ getStatusLabel(statusKey, val) }}
+                      </span>
+                    </div>
+                  </div>
                 </div>
+              </div>
             </div>
+          </div>
+
+          <!-- BATTLE LOG & LOGS CENTER -->
+          <div class="lg:col-span-4 flex flex-col space-y-4">
+            <div class="bg-slate-800/90 rounded-2xl p-4 border border-slate-700 shadow-xl flex-grow flex flex-col h-full min-h-[420px]">
+              <div class="flex items-center justify-between pb-3 border-b border-slate-700">
+                <h3 class="font-bold text-slate-200 flex items-center">
+                  <i class="fa-solid fa-scroll text-amber-400 mr-2"></i> 對戰紀錄與回合戰報
+                </h3>
+                <span class="text-xs text-amber-400 font-mono font-bold bg-slate-900 px-2 py-1 rounded border border-amber-500/20">
+                  回合: {{ currentRound }}
+                </span>
+              </div>
+
+              <!-- Log Messages Container -->
+              <div ref="logContainer" class="flex-grow my-3 space-y-2 overflow-y-auto max-h-[480px] custom-scrollbar pr-1 text-xs">
+                <div v-if="battleLogs.length === 0" class="text-slate-500 text-center py-10">
+                  <i class="fa-solid fa-hourglass-start text-3xl mb-2"></i>
+                  <p>設定好兩隊成員後，點擊「開始對戰」！</p>
+                </div>
+                <div v-for="(log, idx) in battleLogs" :key="idx" class="p-2 rounded border" :class="getLogStyle(log.type)">
+                  <span class="font-mono text-[10px] opacity-60 mr-1">[{{ log.time }}]</span>
+                  <span v-html="log.msg"></span>
+                </div>
+              </div>
+
+              <!-- Winner Banner -->
+              <div v-if="winner" class="mt-auto p-3 rounded-xl bg-gradient-to-r from-amber-500 to-red-600 text-slate-950 font-black text-center text-lg shadow-lg animate-bounce">
+                🎉 {{ winner === 'A' ? '隊伍 A (藍方)' : '隊伍 B (紅方)' }} 獲得勝利！
+              </div>
+            </div>
+          </div>
+
+          <!-- TEAM B -->
+          <div class="lg:col-span-4 flex flex-col space-y-4">
+            <div class="bg-slate-800/90 rounded-2xl p-4 border-2 border-red-500/40 shadow-xl">
+              <div class="flex justify-between items-center mb-3">
+                <h2 class="text-lg font-black text-red-400 flex items-center">
+                  <i class="fa-solid fa-swords mr-2"></i> 隊伍 B (紅方)
+                </h2>
+                <span class="text-xs px-2 py-0.5 rounded bg-red-950 text-red-300 border border-red-800">
+                  存活: {{ getAliveCount('B') }} / {{ battleMode }}
+                </span>
+              </div>
+
+              <!-- Character Cards Setup & Status -->
+              <div class="space-y-3">
+                <div v-for="(slot, idx) in teamB" :key="'B-'+idx" class="bg-slate-900/90 rounded-xl p-3 border border-slate-700 hover:border-red-500/60 transition relative">
+                  <!-- Selection Dropdowns (Before Battle) -->
+                  <div v-if="!battleInProgress" class="space-y-2">
+                    <div class="flex items-center space-x-2">
+                      <span class="text-xs text-red-400 font-bold">席位 {{ idx + 1 }}:</span>
+                      <select v-model="slot.characterName" @change="onCharacterSelect('B', idx)" class="bg-slate-800 text-slate-100 text-sm rounded-lg px-2 py-1 border border-slate-600 flex-grow focus:outline-none focus:border-red-400">
+                        <option v-for="c in availableCharacters('B', slot.characterName)" :key="c.name" :value="c.name" :disabled="c.disabled">
+                          {{ c.name }} {{ c.disabled ? '(同隊已選)' : '' }}
+                        </option>
+                      </select>
+                    </div>
+
+                    <!-- Secondary Skill Pick -->
+                    <div class="flex items-center space-x-2">
+                      <span class="text-xs text-slate-400">通用副技:</span>
+                      <select v-model="slot.secondarySkillName" @change="onSkillSelect('B', idx)" class="bg-slate-800 text-slate-200 text-xs rounded-lg px-2 py-1 border border-slate-700 flex-grow">
+                        <option value="">(無額外技能)</option>
+                        <option v-for="s in availableSkills('B', slot.secondarySkillName)" :key="s.name" :value="s.name" :disabled="s.disabled">
+                          {{ s.name }} {{ s.disabled ? '(同隊已裝備)' : '' }}
+                        </option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <!-- Character Display Card -->
+                  <div class="mt-2 flex flex-col space-y-2">
+                    <div class="flex justify-between items-start">
+                      <div class="flex items-center space-x-2" @mouseenter="showTooltip($event, getCharData(slot.characterName))" @mouseleave="hideTooltip">
+                        <span class="font-bold text-slate-100 cursor-pointer hover:text-red-300 underline decoration-red-500/40">
+                          {{ slot.characterName }}
+                        </span>
+                        <span class="text-xs px-1.5 py-0.5 rounded bg-slate-800 text-amber-400 border border-slate-700">
+                          {{ getCharData(slot.characterName)?.position || '全能' }}
+                        </span>
+                      </div>
+                      <span class="text-xs font-mono text-slate-400">速: {{ slot.currentStats.speed }}</span>
+                    </div>
+
+                    <!-- HP Bar -->
+                    <div class="w-full bg-slate-950 rounded-full h-3.5 overflow-hidden border border-slate-800 relative">
+                      <div class="bg-gradient-to-r from-emerald-500 to-green-400 h-full transition-all duration-300" :style="{ width: getHpPercent(slot) + '%' }"></div>
+                      <span class="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-white drop-shadow">
+                        {{ slot.currentHp }} / {{ slot.maxHp }} HP
+                      </span>
+                    </div>
+
+                    <!-- Active Skills Preview -->
+                    <div class="text-[11px] text-slate-300 space-y-1 bg-slate-950/60 p-2 rounded-lg border border-slate-800">
+                      <div class="flex items-center justify-between" @mouseenter="showTooltip($event, { title: '天生技能: ' + slot.intrinsicSkill.name, desc: slot.intrinsicSkill.desc })" @mouseleave="hideTooltip">
+                        <span class="text-amber-400 font-semibold truncate cursor-pointer"><i class="fa-solid fa-gem mr-1"></i> {{ slot.intrinsicSkill.name }}</span>
+                        <span class="text-[9px] text-slate-400">{{ slot.intrinsicSkill.type }}</span>
+                      </div>
+                      <div v-if="slot.secondarySkill" class="flex items-center justify-between" @mouseenter="showTooltip($event, { title: '副技能: ' + slot.secondarySkill.name, desc: slot.secondarySkill.desc })" @mouseleave="hideTooltip">
+                        <span class="text-teal-300 font-semibold truncate cursor-pointer"><i class="fa-solid fa-bolt mr-1"></i> {{ slot.secondarySkill.name }}</span>
+                        <span class="text-[9px] text-slate-400">{{ slot.secondarySkill.type }}</span>
+                      </div>
+                    </div>
+
+                    <!-- Status Badges -->
+                    <div class="flex flex-wrap gap-1 mt-1">
+                      <span v-for="(val, statusKey) in activeStatuses(slot)" :key="statusKey" class="text-[10px] px-1.5 py-0.5 rounded font-bold border" :class="getStatusBadgeClass(statusKey)">
+                        {{ getStatusLabel(statusKey, val) }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. CHARACTER CODEX TAB -->
+      <div v-if="currentTab === 'codex_char'" class="space-y-4">
+        <div class="flex justify-between items-center bg-slate-800 p-4 rounded-xl border border-slate-700">
+          <h2 class="text-lg font-bold text-amber-400"><i class="fa-solid fa-users mr-2"></i> 角色名鑑 (共 {{ rawCharacters.length }} 名)</h2>
+          <input v-model="charSearch" type="text" placeholder="搜尋角色名稱或定位..." class="bg-slate-900 border border-slate-700 px-3 py-1.5 rounded-lg text-sm text-slate-100 focus:outline-none focus:border-amber-400">
         </div>
 
-        <!-- TAB 2: CHARACTER & SKILL CODEX -->
-        <div id="tab-codex" class="hidden space-y-6">
-            <!-- Filter Bar -->
-            <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-wrap items-center justify-between gap-4">
-                <div class="flex items-center gap-3">
-                    <button onclick="toggleCodexSubtab('chars')" id="subtab-btn-chars" class="px-4 py-2 text-xs font-bold rounded-lg bg-amber-500 text-slate-950">
-                        角色圖鑑 (<span id="char-count">0</span>)
-                    </button>
-                    <button onclick="toggleCodexSubtab('skills')" id="subtab-btn-skills" class="px-4 py-2 text-xs font-bold rounded-lg bg-slate-800 text-slate-300">
-                        通用技能庫 (<span id="skill-count">0</span>)
-                    </button>
-                </div>
-                <input type="text" id="codex-search" oninput="filterCodex()" placeholder="搜尋名稱、定位或技能..." class="bg-slate-800 border border-slate-700 text-xs rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-500 w-64">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div v-for="c in filteredCharacters" :key="c.name" class="bg-slate-800/90 border border-slate-700 hover:border-amber-500/50 rounded-xl p-4 transition shadow">
+            <div class="flex justify-between items-start mb-2">
+              <div>
+                <h3 class="font-bold text-base text-slate-100">{{ c.name }}</h3>
+                <span class="text-xs px-2 py-0.5 rounded bg-slate-700 text-amber-300 border border-slate-600 inline-block mt-1">
+                  定位: {{ c.position }}
+                </span>
+              </div>
             </div>
 
-            <!-- Characters Grid -->
-            <div id="codex-chars-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+            <!-- Stats grid -->
+            <div class="grid grid-cols-4 gap-2 my-3 text-center text-xs bg-slate-900/60 p-2 rounded-lg border border-slate-700/50">
+              <div><span class="text-slate-400 block">物攻</span><b class="text-red-400">{{ c.patk }}</b></div>
+              <div><span class="text-slate-400 block">魔攻</span><b class="text-purple-400">{{ c.matk }}</b></div>
+              <div><span class="text-slate-400 block">防禦</span><b class="text-blue-400">{{ c.def }}</b></div>
+              <div><span class="text-slate-400 block">速度</span><b class="text-emerald-400">{{ c.spd }}</b></div>
+            </div>
 
-            <!-- Skills Grid -->
-            <div id="codex-skills-grid" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+            <!-- Intrinsic skill info -->
+            <div class="bg-slate-900 p-2.5 rounded-lg border border-slate-700/80 text-xs">
+              <div class="flex justify-between text-amber-400 font-bold mb-1">
+                <span>天生技能: {{ c.skillName }}</span>
+                <span class="text-[10px] text-slate-400">{{ c.skillType }}</span>
+              </div>
+              <p class="text-slate-300 text-[11px] leading-relaxed">{{ c.skillDesc || '一般攻擊' }}</p>
+            </div>
+          </div>
         </div>
+      </div>
+
+      <!-- 3. SKILL CODEX TAB -->
+      <div v-if="currentTab === 'codex_skill'" class="space-y-4">
+        <div class="flex justify-between items-center bg-slate-800 p-4 rounded-xl border border-slate-700">
+          <h2 class="text-lg font-bold text-teal-400"><i class="fa-solid fa-book-sparkles mr-2"></i> 通用技能庫 (共 {{ rawSkills.length }} 項)</h2>
+          <input v-model="skillSearch" type="text" placeholder="搜尋技能名稱或說明..." class="bg-slate-900 border border-slate-700 px-3 py-1.5 rounded-lg text-sm text-slate-100 focus:outline-none focus:border-teal-400">
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div v-for="s in filteredSkills" :key="s.name" class="bg-slate-800/90 border border-slate-700 hover:border-teal-500/50 rounded-xl p-4 transition shadow">
+            <div class="flex justify-between items-start mb-2">
+              <h3 class="font-bold text-teal-300 text-sm">{{ s.name }}</h3>
+              <span class="text-[10px] px-2 py-0.5 rounded bg-slate-900 text-slate-400 border border-slate-700">
+                {{ s.type }}
+              </span>
+            </div>
+            <p class="text-slate-300 text-xs leading-relaxed bg-slate-900/60 p-2.5 rounded-lg border border-slate-700/50">
+              {{ s.desc }}
+            </p>
+          </div>
+        </div>
+      </div>
     </main>
 
-    <script>
-        const RAW_CHARACTERS = [
-            { name: "炎拳", role: "輸出", phy: 10, mag: 5, def: 0, spd: 5, skillName: "炎拳", skillType: "物理輸出, 魔法輸出", triggerType: "主動", skillDesc: "必須要在焚燒狀態才可使用，使用過後防禦歸零", hasCC: "是", ccDesc: "焚燒(可疊加，最多15層)" },
-            { name: "10式戦車", role: "全能", phy: 9, mag: 0, def: 5, spd: 6, skillName: "10式 120mm 装弾筒付翼安定徹甲弾", skillType: "物理輸出", triggerType: "主動", skillDesc: "對選定目標造成 615 - 目標防禦力 × 特定倍率 的傷害", hasCC: "是", ccDesc: "焚燒" },
-            { name: "t3", role: "輸出", phy: 7, mag: 0, def: 3, spd: 10, skillName: "擲骰", skillType: "增減益", triggerType: "被動", skillDesc: "普攻時隨機增加10%~60%傷害。60%時施加恐懼；10%或無法發動時使我方獲技窮。", hasCC: "是", ccDesc: "恐懼" },
-            { name: "家暴王", role: "輸出", phy: 10, mag: 0, def: 4, spd: 8, skillName: "家暴神拳", skillType: "物理輸出", triggerType: "主動", skillDesc: "超大力的家暴神拳，無視對方防禦。", hasCC: "是", ccDesc: "破盾" },
-            { name: "屏東公園的500快阿姨", role: "輸出", phy: 0, mag: 10, def: 0, spd: 10, skillName: "500塊來一次", skillType: "魔法輸出, 增減益", triggerType: "回合技", skillDesc: "將有20%機率因為賣淫被抓", hasCC: "是", ccDesc: "虛弱" },
-            { name: "t2", role: "輔助", phy: 0, mag: 10, def: 5, spd: 5, skillName: "補丁", skillType: "增減益", triggerType: "被動", skillDesc: "普攻時轉化50%魔攻為治療；若自身技窮則全隊獲75%魔攻治療並刷新敵方恐懼", hasCC: "是", ccDesc: "恐懼" },
-            { name: "究極抖M王者", role: "坦克", phy: 0, mag: 10, def: 10, spd: 0, skillName: "狠狠的肏我", skillType: "反擊", triggerType: "被動", skillDesc: "受到的傷害轉魔法攻擊並且強力誘惑", hasCC: "是", ccDesc: "嘲諷" },
-            { name: "先肏你媽在杜瑞拉", role: "回復", phy: 0, mag: 7, def: 1, spd: 10, skillName: "你媽超爽", skillType: "魔法輸出, 回復", triggerType: "回合技", skillDesc: "利用魔法攻擊來回復自己或任一隊友", hasCC: "否", ccDesc: "" },
-            { name: "露娜", role: "輔助", phy: 10, mag: 10, def: 0, spd: 0, skillName: "活下去", skillType: "增減益", triggerType: "被動", skillDesc: "嘲諷對手。死亡時將自身數值全數疊加給「炎拳」", hasCC: "是", ccDesc: "嘲諷" },
-            { name: "t王", role: "輸出", phy: 9, mag: 9, def: 2, spd: 0, skillName: "欲戴王冠 必承其重", skillType: "物理輸出", triggerType: "回合技", skillDesc: "過量治療轉為[王冠]，回合發動時轉為[強攻]並精準轟炸恐懼目標", hasCC: "否", ccDesc: "" },
-            { name: "喝酒司機", role: "輔助", phy: 2, mag: 8, def: 5, spd: 8, skillName: "喝不喝", skillType: "增減益", triggerType: "回合選擇", skillDesc: "喝酒後20%機率猝死、30%被抓監禁、50%得到自信", hasCC: "否", ccDesc: "" },
-            { name: "薩恩", role: "輸出", phy: 2, mag: 8, def: 4, spd: 6, skillName: "神罰「炎拳」", skillType: "魔法輸出", triggerType: "主動", skillDesc: "處死我方一名隊員，繼承其全數值並將自身天生技能替換為該隊友技能", hasCC: "否", ccDesc: "" },
-            { name: "黑手", role: "輸出", phy: 10, mag: 10, def: 3, spd: 7, skillName: "見沒見過黑社會", skillType: "物理輸出, 魔法輸出", triggerType: "追擊", skillDesc: "30%機率打出黑閃 (基礎傷害+200%)", hasCC: "否", ccDesc: "" },
-            { name: "用覽趴共九陶", role: "坦克", phy: 0, mag: 0, def: 10, spd: 0, skillName: "挖ㄟ覽趴鬮里害", skillType: "真厲害覽趴", triggerType: "被動", skillDesc: "75%機率無視所有傷害與控制，並嘲諷所有人", hasCC: "否", ccDesc: "嘲諷" },
-            { name: "BMPT-72", role: "輸出", phy: 8, mag: 0, def: 8, spd: 4, skillName: "30 mm 2A42 機炮", skillType: "物理輸出", triggerType: "主動", skillDesc: "75%使目標速度歸零且無法行動，25%直接摧毀目標", hasCC: "是", ccDesc: "繳械" },
-            { name: "凱斯芒斯特(CAS Monster)", role: "輔助", phy: 10, mag: 2, def: 0, spd: 8, skillName: "Kh-38MT", skillType: "物理輸出", triggerType: "被動", skillDesc: "回合開始時發射6枚飛彈，80%直接摧毀目標，20%繳械/無法行動", hasCC: "是", ccDesc: "繳械" },
-            { name: "廁所裡的單親媽媽", role: "輔助", phy: 0, mag: 10, def: 0, spd: 10, skillName: "就是要在廁所生", skillType: "生小孩", triggerType: "被動", skillDesc: "生出寶寶並獲得自食胎盤，造成恐懼", hasCC: "是", ccDesc: "恐懼" },
-            { name: "國士無雙", role: "輔助", phy: 0, mag: 10, def: 8, spd: 2, skillName: "十三面", skillType: "魔法輸出", triggerType: "被動", skillDesc: "前4回合無法行動且無法被選中，隨後聽牌自摸/胡牌宣告即死", hasCC: "否", ccDesc: "" },
-            { name: "黃伯超", role: "輸出", phy: 10, mag: 0, def: 5, spd: 5, skillName: "超派鐵拳", skillType: "物理輸出", triggerType: "被動", skillDesc: "扣除最慢隊友100血，物攻翻3倍並無視防禦", hasCC: "是", ccDesc: "破盾" },
-            { name: "劉偉建", role: "回復", phy: 6, mag: 10, def: 4, spd: 0, skillName: "超甲組的醋飯超難吃", skillType: "魔法輸出", triggerType: "追擊", skillDesc: "扣除隊友100血，自身獲得嘲諷且魔攻翻3倍", hasCC: "是", ccDesc: "嘲諷" },
-            { name: "消波塊", role: "全能", phy: 10, mag: 0, def: 10, spd: 0, skillName: "裡面的人", skillType: "物理輸出", triggerType: "被動", skillDesc: "對敵方單體造成80%現有血量傷害，硬控敵方全體1回合後自身下場", hasCC: "是", ccDesc: "硬控" },
-            { name: "謝新達", role: "輔助", phy: 10, mag: 0, def: 5, spd: 5, skillName: "豬大哥沒死", skillType: "回復", triggerType: "被動", skillDesc: "擁有兩條命。死後變身「中華民國總統」，敵方全體繳械，物攻翻2倍", hasCC: "是", ccDesc: "繳械" },
-            { name: "牢大科比", role: "坦克", phy: 10, mag: 0, def: 0, spd: 10, skillName: "牢大想你了", skillType: "增減益", triggerType: "被動", skillDesc: "受到傷害時，50%機率完全免疫傷害", hasCC: "否", ccDesc: "" },
-            { name: "謝羿捷", role: "全能", phy: 10, mag: 5, def: 2, spd: 3, skillName: "奇蹟大獎", skillType: "物理輸出, 魔法輸出, 回復, 增減益", triggerType: "主動", skillDesc: "隨機觸發扳手、靜思語、鐵鏟或10%三角錐(全效果數值翻倍)", hasCC: "是", ccDesc: "破盾" },
-            { name: "防禦盾", role: "坦克", phy: 10, mag: 0, def: 10, spd: 0, skillName: "防禦盾10%", skillType: "增減益", triggerType: "被動", skillDesc: "受傷8倍，擁有嘲諷，血量固定100但有10條命", hasCC: "是", ccDesc: "嘲諷" },
-            { name: "真究極無敵NTR戰士", role: "全能", phy: 3, mag: 8, def: 9, spd: 1, skillName: "再不回家幹你媽媽(真的會幹ㄟ)", skillType: "物理輸出, 魔法輸出", triggerType: "主動", skillDesc: "施加嘲諷與恐懼，滿兩層嘲諷發動特殊技能", hasCC: "是", ccDesc: "恐懼" },
-            { name: "柯文哲", role: "輸出", phy: 0, mag: 10, def: 3, spd: 7, skillName: "民進黨才是。 共匪！！！！！", skillType: "魔法輸出, 增減益", triggerType: "主動", skillDesc: "造成500魔傷並破盾，施加背信罪，滿2層觸發【監禁】2回合", hasCC: "是", ccDesc: "監禁" },
-            { name: "晨晨", role: "回復", phy: 0, mag: 3, def: 7, spd: 10, skillName: "靠我力量", skillType: "回復, 增減益", triggerType: "被動", skillDesc: "隊友受傷後發動反擊，魔攻+200，恢復70%反擊傷害血量，速度+50%並全體解控", hasCC: "否", ccDesc: "" },
-            { name: "竹子", role: "輔助", phy: 10, mag: 0, def: 5, spd: 5, skillName: "雨後春筍", skillType: "物理輸出", triggerType: "被動", skillDesc: "受到500以上傷害觸發「蔓延」，反傷200並附帶虛弱", hasCC: "是", ccDesc: "虛弱" },
-            { name: "Chance", role: "全能", phy: 5, mag: 5, def: 5, spd: 5, skillName: "叮！up up up", skillType: "物理輸出, 回復, 增減益", triggerType: "回合技", skillDesc: "隨機觸發傷害、虛弱、嘲諷、全體回復、雙倍攻擊或0.01%直接勝利", hasCC: "否", ccDesc: "" },
-            { name: "假面騎士Chalice", role: "輸出", phy: 10, mag: 0, def: 5, spd: 5, skillName: "Wild Form 狂野型態", skillType: "物理輸出", triggerType: "被動", skillDesc: "隊員受傷獲紅心，集滿13張進入狂野型態，屬性翻倍", hasCC: "否", ccDesc: "" },
-            { name: "假面騎士blade", role: "全能", phy: 10, mag: 0, def: 2, spd: 8, skillName: "King Form 皇帝形態", skillType: "物理輸出, 增減益", triggerType: "被動", skillDesc: "受傷獲黑桃，牌數滿13張進 King Form，全數值5倍", hasCC: "否", ccDesc: "" },
-            { name: "假面騎士Garren", role: "輔助", phy: 10, mag: 0, def: 10, spd: 0, skillName: "橘前輩！難道你背叛我們了嗎", skillType: "增減益", triggerType: "追擊", skillDesc: "無差別造成50%傷害與混亂，滿13張方塊進騎士型態", hasCC: "是", ccDesc: "混亂" },
-            { name: "假面騎士Leangle", role: "回復", phy: 1, mag: 9, def: 6, spd: 4, skillName: "完全封印", skillType: "增減益", triggerType: "被動", skillDesc: "受傷獲梅花，滿13張後攻擊減半，但全體敵方繳械", hasCC: "是", ccDesc: "繳械" },
-            { name: "賭神", role: "輸出", phy: 5, mag: 0, def: 5, spd: 10, skillName: "小賭怡情大賭郭台銘", skillType: "物理輸出, 魔法輸出, 回復, 增減益", triggerType: "回合技", skillDesc: "連續賭40次取最低機率（大獎/二獎/垃圾）使用1回合", hasCC: "是", ccDesc: "繳械" },
-            { name: "巧克力", role: "輔助", phy: 0, mag: 0, def: 10, spd: 10, skillName: "老大該吃巧克力了", skillType: "回復, 增減益", triggerType: "主動", skillDesc: "扣200血讓物攻最高者立即行動/發動2次技能，自身獲得嘲諷", hasCC: "否", ccDesc: "嘲諷" },
-            { name: "梁念容LV.999", role: "全能", phy: 10, mag: 10, def: 10, spd: 10, skillName: "別管問就是全能", skillType: "物理/魔法/回復/增減益", triggerType: "回合技", skillDesc: "秒殺除自己以外所有人並施加全負面效果，復活我方10次", hasCC: "是", ccDesc: "全負面" },
-            { name: "陳星偉", role: "輔助", phy: 10, mag: 10, def: 0, spd: 0, skillName: "哥哥你為什麼在打手槍", skillType: "增減益", triggerType: "被動", skillDesc: "每次自己行動回合，傷害乘1.5倍", hasCC: "否", ccDesc: "" },
-            { name: "陳守琦", role: "全能", phy: 10, mag: 0, def: 9, spd: 1, skillName: "我看你是太久沒被我操了", skillType: "物理輸出, 增減益", triggerType: "追擊", skillDesc: "施加所有負面效果1回合，造成貫穿傷害並全隊回血400", hasCC: "是", ccDesc: "全負面" },
-            { name: "陳米荻", role: "輸出", phy: 0, mag: 10, def: 5, spd: 5, skillName: "詭異貓叫", skillType: "魔法輸出, 回復", triggerType: "回合技", skillDesc: "可愛的喵一下，造成魔傷並恢復傷額兩倍血量", hasCC: "否", ccDesc: "" },
-            { name: "戰斬", role: "坦克", phy: 5, mag: 4, def: 5, spd: 6, skillName: "焙樋咎逝鷂樋茴覷", skillType: "物理輸出", triggerType: "被動", skillDesc: "我方單回合內受到的傷害累積大於1000時觸發反擊", hasCC: "否", ccDesc: "" }
-        ];
+    <!-- Floating Tooltip Box -->
+    <div v-if="tooltip.show" :style="{ top: tooltip.y + 'px', left: tooltip.x + 'px' }" class="fixed z-50 bg-slate-900/95 border-2 border-amber-500/80 text-slate-100 text-xs rounded-xl p-3 shadow-2xl max-w-xs tooltip-card">
+      <div class="font-bold text-amber-300 text-sm mb-1">{{ tooltip.title }}</div>
+      <div v-if="tooltip.stats" class="grid grid-cols-4 gap-1 text-center my-1 py-1 bg-slate-950 rounded border border-slate-800 font-mono text-[10px]">
+        <span>物:{{ tooltip.stats.patk }}</span>
+        <span>魔:{{ tooltip.stats.matk }}</span>
+        <span>防:{{ tooltip.stats.def }}</span>
+        <span>速:{{ tooltip.stats.spd }}</span>
+      </div>
+      <p class="text-slate-300 leading-normal">{{ tooltip.desc }}</p>
+    </div>
+  </div>
 
-        const RAW_SKILLS = [
-            { name: "在將對方燒成灰燼前不會停下來的火焰", trigger: "被動", desc: "回合結束無焚燒則增加1層，超過則刷新。攻擊與受擊皆為對方附帶1~3層焚燒" },
-            { name: "家暴神拳", trigger: "主動", desc: "超大力的家暴神拳，無視護盾與防禦" },
-            { name: "修補", trigger: "主動", desc: "回復100血量" },
-            { name: "支援", trigger: "主動", desc: "幫我方速度最慢的角色回復100血量" },
-            { name: "攻擊", trigger: "主動", desc: "對敵方單體造成100點傷害" },
-            { name: "斬擊", trigger: "被動", desc: "普攻後附加100點傷害" },
-            { name: "硬控", trigger: "主動", desc: "給予目標10倍物攻&魔攻 Buff 1回合，並使其無法行動1回合 (無視免控)" },
-            { name: "王的寶座", trigger: "被動", desc: "受治療時附加(物攻+魔攻)50%的額外治療效果" },
-            { name: "機械劍", trigger: "被動", desc: "敵方獲負面效果時，對負面最多的敵方造成(物攻+魔攻)75%傷害" },
-            { name: "骰盅", trigger: "回合技", desc: "若速度為100：使敵我各獲恐懼和技窮，並對敵方造成(物攻+速度)50%傷害 (已恐懼則100%)" },
-            { name: "齒輪飛鏢", trigger: "被動", desc: "給敵負面時對隨機敵造成50%物傷；給我方負面時對最多負面敵造成(物攻+速度)75%傷害並治療最慢隊友" },
-            { name: "板金繃帶", trigger: "回合技", desc: "最快隊友加50%魔攻轉物攻；若自身有負面，最慢隊友獲嘲諷與(魔攻+防禦)75%治療" },
-            { name: "超爽的高級電動飛機杯", trigger: "主動", desc: "超級爽，提升一名角色基礎傷害100%以及35點速度" },
-            { name: "抽菸嗎", trigger: "主動", desc: "降低對方50%速度、20%傷害和60%最大生命上限" },
-            { name: "ㄟ你的雞雞好小", trigger: "追擊", desc: "65%機率對敵方造成400點魔傷並施加技窮" },
-            { name: "把經書撿起來", trigger: "追擊", desc: "最高傷害隊友攻擊後45%機率發動，造成虛弱與恐懼" },
-            { name: "幹你媽", trigger: "回合技", desc: "對敵方造成150點魔法傷害" },
-            { name: "教你吃你就吃.", trigger: "主動", desc: "造成恐懼與破盾" },
-            { name: "躲進你屁眼", trigger: "追擊", desc: "70%機率造成250點物理傷害" },
-            { name: "最愛肛交", trigger: "被動", desc: "被攻擊時65%機率提升基礎防禦60%加300點防禦" },
-            { name: "神愛世人", trigger: "回合技", desc: "回復我方所有成員350點生命值" },
-            { name: "幹狗屁眼", trigger: "追擊", desc: "造成傷害後65%機率追加我方總傷害半數的傷害" },
-            { name: "灌滿你的直腸", trigger: "追擊", desc: "造成傷害後追擊450點傷害並施加虛弱" },
-            { name: "接著奏樂接著幹", trigger: "追擊", desc: "60%機率再額外攻擊一次" },
-            { name: "關我屁事阿", trigger: "被動", desc: "受擊時有50%機率完全無視傷害" },
-            { name: "順著網線肏你全家", trigger: "主動", desc: "造成500點魔法傷害並破盾" },
-            { name: "看你是太久沒被我操了", trigger: "主動", desc: "機率對敵造成所有負面效果及9999物傷+9999魔傷" },
-            { name: "一定讓你媽懷孕", trigger: "主動", desc: "造成600點魔法傷害" },
-            { name: "你老婆超愛我的大雞巴", trigger: "特殊技", desc: "造成1000點魔法傷害並施加全體技窮" },
-            { name: "性感習近平", trigger: "主動", desc: "回復全體70%最大血量並連動發動我方全體技能" },
-            { name: "直升飛機起飛囉", trigger: "回合技", desc: "每回合造成敵方一名成員焚燒與200點物傷" },
-            { name: "我是L", trigger: "被動", desc: "免疫一次致命傷害，之後每受200傷害提升隊友速度與防禦" },
-            { name: "解", trigger: "回合技", desc: "造成500點傷害，25%機率可連續觸發減半追擊" },
-            { name: "再契象 五星級飯店收據", trigger: "被動", desc: "當我方受到600以上傷害時回復300血量" },
-            { name: "Wild Cyclone（狂嘯疾風）", trigger: "主動", desc: "若速度、防禦、物攻均不低於對手，造成2倍物傷" },
-            { name: "Royal Straight Flush（皇家同花順）", trigger: "主動", desc: "對敵方全體造成高額物理傷害" },
-            { name: "孤注一擲", trigger: "主動", desc: "以100點血量為代價重新抽獎一次" },
-            { name: "半夜吃火鍋", trigger: "回合技", desc: "回復100點血量" },
-            { name: "ALL IN", trigger: "被動", desc: "血量<250且敵人血量<500時發動，立即行動並強行發動主動招式" },
-            { name: "火球術", trigger: "主動", desc: "造成焚毀效果並造成200點傷害" },
-            { name: "Explosion", trigger: "主動", desc: "對除自己外所有人造成700點傷害，自己繳械2回合" },
-            { name: "噴水", trigger: "追擊", desc: "解除我方全體隊員的焚燒效果" },
-            { name: "興許是迴圈", trigger: "被動", desc: "提高60%連擊率，連擊時同步觸發追擊技能" }
-        ];
+  <script>
+    const { createApp, ref, computed, watch, nextTick } = Vue;
 
-        let battleMode = 3;
-        let blueTeamSetup = [];
-        let redTeamSetup = [];
-        let battleState = null;
-        let battleTimer = null;
-        let battleSpeed = 1000;
-        let isPaused = false;
+    // RAW DATASET DEFINITIONS
+    const RAW_CHARACTERS = [
+      { name: "炎拳", position: "輸出", patk: 10, matk: 5, def: 0, spd: 5, skillName: "炎拳", skillType: "主動", skillDesc: "必須處於【焚燒】狀態才可發動，擊中敵方造成高額傷害並使自身防禦歸零。" },
+      { name: "10式戦車", position: "全能", patk: 9, matk: 0, def: 5, spd: 6, skillName: "10式 120mm 装弾筒付翼安定徹甲弾", skillType: "主動", skillDesc: "造成 615 - 目標防禦力×50 的高額穿甲傷害，並附帶 2 層【焚燒】。" },
+      { name: "t3", position: "輸出", patk: 7, matk: 0, def: 3, spd: 10, skillName: "擲骰", skillType: "被動", skillDesc: "普攻隨機增加 10%~60% 傷害。為 60% 時使敵方獲得【恐懼】；為 10% 或無法發動時使我方獲得【技窮】。" },
+      { name: "家暴王", position: "輸出", patk: 10, matk: 0, def: 4, spd: 8, skillName: "家暴神拳", skillType: "主動", skillDesc: "強力的物理打擊，對目標造成物理傷害並附加【破盾】狀態。" },
+      { name: "屏東公園的500快阿姨", position: "輸出", patk: 0, matk: 10, def: 0, spd: 10, skillName: "500塊來一次", skillType: "回合技", skillDesc: "造成高額魔法傷害並使敵方【虛弱】。20% 機率直接被抓暫停行動 1 回合。" },
+      { name: "t2", position: "輔助", patk: 0, matk: 10, def: 5, spd: 5, skillName: "補丁", skillType: "被動", skillDesc: "普攻時將 50% 魔攻轉為治療我方最慢者；若自身被【技窮】，全隊獲得 75% 魔攻治療。" },
+      { name: "究極抖M王者", position: "坦克", patk: 0, matk: 10, def: 10, spd: 0, skillName: "狠狠的肏我", skillType: "被動", skillDesc: "將受到的傷害 100% 轉為魔法攻擊力加成，並對攻擊者施加【嘲諷】。" },
+      { name: "先肏你媽在杜瑞拉", position: "回復", patk: 0, matk: 7, def: 1, spd: 10, skillName: "你媽超爽", skillType: "回合技", skillDesc: "利用魔法攻擊為我方血量最低目標回復 350 點生命。" },
+      { name: "露娜", position: "輔助", patk: 10, matk: 10, def: 0, spd: 0, skillName: "活下去", skillType: "被動", skillDesc: "開局【嘲諷】對手。死亡時發動獻祭，將自身全數值 100% 疊加於「炎拳」身上。" },
+      { name: "t王", position: "輸出", patk: 9, matk: 9, def: 2, spd: 0, skillName: "欲戴王冠 必承其重", skillType: "回合技", skillDesc: "受過量治療可積累【王冠】。發動時將（物攻+魔攻+王冠數值）轉為高額爆發攻擊【恐懼】目標。" },
+      { name: "喝酒司機", position: "輔助", patk: 2, matk: 8, def: 5, spd: 8, skillName: "喝不喝", skillType: "回合選擇", skillDesc: "喝酒試驗：20% 機率直接猝死、30% 被抓、50% 獲得【自信】（傷害翻倍）。" },
+      { name: "薩恩", position: "輸出", patk: 2, matk: 8, def: 4, spd: 6, skillName: "神罰「炎拳」", skillType: "主動", skillDesc: "立刻處死我方一名存活隊員，完全繼承其物攻、魔攻、防禦、速度，並替換為該隊員天生技能！" },
+      { name: "黑手", position: "輸出", patk: 10, matk: 10, def: 3, spd: 7, skillName: "見沒見過黑社會", skillType: "追擊", skillDesc: "普攻後 30% 機率打出黑閃，造成基礎傷害 + 200% 的巨額爆發！" },
+      { name: "用覽趴共九陶", position: "坦克", patk: 0, matk: 0, def: 10, spd: 0, skillName: "挖ㄟ覽趴鬮里害", skillType: "被動", skillDesc: "75% 機率無視所有傷害與控制，並對敵方全體施加【嘲諷】。" },
+      { name: "BMPT-72", position: "輸出", patk: 8, matk: 0, def: 8, spd: 4, skillName: "30 mm 2A42 機炮", skillType: "主動", skillDesc: "75% 機率使目標速度降為 0、無法攻擊並【繳械】；25% 機率直接摧毀目標！" },
+      { name: "凱斯芒斯特(CAS Monster)", position: "輔助", patk: 10, matk: 2, def: 0, spd: 8, skillName: "Kh-38MT", skillType: "被動", skillDesc: "開局發射 6 枚飛彈打擊敵方，每發 80% 機率摧毀目標，20% 造成【繳械】與【無法行動】。" },
+      { name: "廁所裡的單親媽媽", position: "輔助", patk: 0, matk: 10, def: 0, spd: 10, skillName: "就是要在廁所生", skillType: "被動", skillDesc: "生出一個 100 傷害/速度的寶寶，寶寶吃胎盤立即行動並造成【恐懼】。" },
+      { name: "國士無雙", position: "輔助", patk: 0, matk: 10, def: 8, spd: 2, skillName: "十三面", skillType: "被動", skillDesc: "前 4 回合無法行動且無法被選中。隨後進入聽牌，每次行動 25% 自摸(全體480魔傷)或胡牌(即死)。" },
+      { name: "黃伯超", position: "輸出", patk: 10, matk: 0, def: 5, spd: 5, skillName: "超派鐵拳", skillType: "被動", skillDesc: "扣除最慢隊友 100 血，使自身物攻 3 倍且無視防禦進行爆破攻擊。" },
+      { name: "劉偉建", position: "回復", patk: 6, matk: 10, def: 4, spd: 0, skillName: "超甲組的醋飯超難吃", skillType: "追擊", skillDesc: "扣除所有隊友 100 血，獲得【嘲諷】，並使自身魔攻提升為 3 倍。" },
+      { name: "消波塊", position: "全能", patk: 10, matk: 0, def: 10, spd: 0, skillName: "裡面的人", skillType: "被動", skillDesc: "選中一個敵方造成 80% 現有血量傷害，並使對方全體【監禁/無法行動】1 回合，隨後自身退場。" },
+      { name: "謝新達", position: "輔助", patk: 10, matk: 0, def: 5, spd: 5, skillName: "豬大哥沒死", skillType: "被動", skillDesc: "擁有 2 條命。血量歸零時變身「中華民國總統」，全體敵方【繳械】1 回合且物攻翻倍。" },
+      { name: "牢大科比", position: "坦克", patk: 10, matk: 0, def: 0, spd: 10, skillName: "牢大想你了", skillType: "被動", skillDesc: "直升機空降護體，受擊時有 50% 機率直接閃避/無視傷害。" },
+      { name: "謝羿捷", position: "全能", patk: 10, matk: 5, def: 2, spd: 3, skillName: "奇蹟大獎", skillType: "主動", skillDesc: "隨機抽獎：扳手(75%AOE物傷)、靜思語(150%魔傷+2控場)、鐵鏟(200%單體破盾)、三角錐(大滿貫！)" },
+      { name: "防禦盾", position: "坦克", patk: 10, matk: 0, def: 10, spd: 0, skillName: "防禦盾10%", skillType: "被動", skillDesc: "受傷害 8 倍，獲得【嘲諷】；總血量縮減但擁有 10 條生命！" },
+      { name: "真究極無敵NTR戰士", position: "全能", patk: 3, matk: 8, def: 9, spd: 1, skillName: "再不回家幹你媽媽", skillType: "主動", skillDesc: "施加【嘲諷】與【恐懼】。滿 2 層嘲諷後觸發強暴爆發打擊。" },
+      { name: "柯文哲", position: "輸出", patk: 0, matk: 10, def: 3, spd: 7, skillName: "民進黨才是共匪！", skillType: "主動", skillDesc: "造成 500 點破盾魔傷，施加 1 層【背信罪】。滿 2 層觸發【監禁】(禁動2回合,增傷30%,禁療)。" },
+      { name: "晨晨", position: "回復", patk: 0, matk: 3, def: 7, spd: 10, skillName: "靠我力量", skillType: "被動", skillDesc: "隊友受傷時觸發反擊，提升魔攻並回復隊友反擊傷害 70% 血量，提升全體速度 50% 並淨化負面！" },
+      { name: "竹子", position: "輔助", patk: 10, matk: 0, def: 5, spd: 5, skillName: "雨後春筍", skillType: "被動", skillDesc: "受到 500 以上傷害時觸發「蔓延」，對攻擊者反彈 200 點物理傷害並【虛弱】。" },
+      { name: "Chance", position: "全能", patk: 5, matk: 5, def: 5, spd: 5, skillName: "叮！up up up", skillType: "回合技", skillDesc: "回合開始輪盤：500傷害(25%)、虛弱(25%)、嘲諷(16%)、2倍普攻(10%)、全體回600(5%)、秒殺(1%)等。" },
+      { name: "假面騎士Chalice", position: "輸出", patk: 10, matk: 0, def: 5, spd: 5, skillName: "Wild Form 狂野型態", skillType: "被動", skillDesc: "受擊累積「紅心」，集滿 13 張開啟狂野型態，全數值翻倍並獲得技能【Wild Cyclone】。" },
+      { name: "假面騎士blade", position: "全能", patk: 10, matk: 0, def: 2, spd: 8, skillName: "King Form 皇帝形態", skillType: "被動", skillDesc: "受擊累積「黑桃」，花色滿 13 張開啟皇帝型態，全數值 5 倍並獲得【Royal Straight Flush】。" },
+      { name: "假面騎士Garren", position: "輔助", patk: 10, matk: 0, def: 10, spd: 0, skillName: "橘前輩！背叛了嗎", skillType: "追擊", skillDesc: "無差別全體 50% 傷害，敵方傷害 1.2 倍但【混亂】。集滿 13 張方塊進入騎士型態並獲得【嘲諷】。" },
+      { name: "假面騎士Leangle", position: "回復", patk: 1, matk: 9, def: 6, spd: 4, skillName: "完全封印", skillType: "被動", skillDesc: "受擊累積「梅花」，集滿 13 張後攻擊砍半，但對敵方全體施加【繳械】！" },
+      { name: "賭神", position: "輸出", patk: 5, matk: 0, def: 5, spd: 10, skillName: "小賭怡情大賭郭台銘", skillType: "回合技", skillDesc: "連續賭 40 次取最低機率：大獎(1% 99%減傷+500傷)、二獎(2% 數值翻倍)、垃圾(97% 全負面1回合)。" },
+      { name: "巧克力", position: "輔助", patk: 0, matk: 0, def: 10, spd: 10, skillName: "老大該吃巧克力了", skillType: "主動", skillDesc: "扣 200 血為代價，使物攻最高隊友立即行動且技能發動 2 次！自身獲得【嘲諷】。" },
+      { name: "梁念容LV.999", position: "全能", patk: 10, matk: 10, def: 10, spd: 10, skillName: "別管問就是全能", skillType: "回合技", skillDesc: "秒殺除自己外所有人，施加全負面，回復我方全滿血，敵方陣亡則觸發多重復活。" },
+      { name: "陳星偉", position: "輔助", patk: 10, matk: 10, def: 0, spd: 0, skillName: "哥哥你為什麼在打手槍", skillType: "被動", skillDesc: "每一次自己行動回合，傷害持續乘以 1.5 倍（可無限疊加）。" },
+      { name: "陳守琦", position: "全能", patk: 10, matk: 0, def: 9, spd: 1, skillName: "太久沒被我操了", skillType: "追擊", skillDesc: "對敵方物攻最高者施加全負面 1 回合，造成破盾物傷，並為我方全員回復 400 生命。" },
+      { name: "陳米荻", position: "輸出", patk: 0, matk: 10, def: 5, spd: 5, skillName: "詭異貓叫", skillType: "回合技", skillDesc: "可愛的喵一下~ 造成高額魔法傷害，並回復所造成傷害 2 倍的生命值！" },
+      { name: "戰斬", position: "坦克", patk: 5, matk: 4, def: 5, spd: 6, skillName: "焙樋咎逝鷂樋茴覷", skillType: "被動", skillDesc: "當我方單回合內受到的傷害總和 > 1000 時觸發，對敵方造成全體反彈爆破。" }
+    ];
 
-        window.onload = function() {
-            initCodex();
-            changeBattleMode(3);
+    const RAW_SKILLS = [
+      { name: "在將對方燒成灰燼前不會停下來的火焰", type: "被動", desc: "回合結束若無【焚燒】則增加 1 層；造成攻擊或受擊時，100% 機率為對手附上 1~3 層【焚燒】(最多疊加 15 層，每層每回合造成 120 點傷害)。" },
+      { name: "家暴神拳", type: "主動", desc: "超大力的家暴神拳，造成 400 點物理傷害並【破盾】。" },
+      { name: "修補", type: "主動", desc: "回復自身 100 點血量。" },
+      { name: "支援", type: "主動", desc: "選擇我方速度最慢的角色為目標，幫其回復 100 點血量。" },
+      { name: "攻擊", type: "主動", desc: "對敵方單體造成 100 點基礎傷害。" },
+      { name: "斬擊", type: "被動", desc: "普攻後額外追擊一次 100 點物理傷害。" },
+      { name: "硬控", type: "主動", desc: "給予敵方 10 倍攻擊 Buff 但同時使其【無法行動】1 回合，無視免控。" },
+      { name: "王的寶座", type: "被動", desc: "受治療時，為自己額外附加（物攻+魔攻）*50% 的護盾治療效果。" },
+      { name: "機械劍", type: "被動", desc: "當敵方被附加負面效果時，對負面最多者造成 (物攻+魔攻)*75% 傷害。" },
+      { name: "骰盅", type: "回合技", desc: "若速度為100：使雙方各附加【恐懼】與【技窮】，並造成 (物攻+速度)*50% 傷害。" },
+      { name: "齒輪飛鏢", type: "被動", desc: "敵方加負面時對隨機敵方造成 50% 物理傷害；我方加負面時對敵方最重者造成 75% 物理傷害並補血。" },
+      { name: "板金繃帶", type: "回合技", desc: "我方最快單位加魔攻50%的物攻。自身有負面時對我方最慢者加【嘲諷】與治療。" },
+      { name: "超爽的高級電動飛機杯", type: "主動", desc: "提升一名角色基礎傷害 +100% 以及 35 點速度。" },
+      { name: "抽菸嗎", type: "主動", desc: "降低對方 50% 速度、20% 傷害與 60% 最大生命值上限。" },
+      { name: "ㄟ你的雞雞好小", type: "追擊", desc: "65% 機率對敵方單體造成 400 點魔法傷害與【技窮】。" },
+      { name: "把經書撿起來", type: "追擊", desc: "我方最高傷害成員攻擊後 45% 機率發動，造成【虛弱】與【恐懼】。" },
+      { name: "幹你媽", type: "回合技", desc: "造成 150 點魔法傷害。" },
+      { name: "教你吃你就吃.", type: "主動", desc: "造成【恐懼】與【破盾】。" },
+      { name: "躲進你屁眼", type: "追擊", desc: "70% 機率造成 250 點物理傷害。" },
+      { name: "最愛肛交", type: "被動", desc: "被攻擊時 65% 機率提升自己基礎防禦 60% + 300 點防禦。" },
+      { name: "神愛世人", type: "回合技", desc: "回復我方所有成員 350 點生命值。" },
+      { name: "幹狗屁眼", type: "追擊", desc: "造成傷害後 65% 機率對敵方造成我方所有成員傷害總和除以 2 的傷害。" },
+      { name: "灌滿你的直腸", type: "追擊", desc: "造成傷害後追擊 450 點傷害以及【虛弱】。" },
+      { name: "接著奏樂接著幹", type: "追擊", desc: "60% 機率再連續打一次！" },
+      { name: "關我屁事阿", type: "被動", desc: "被攻擊時 50% 機率無視該次傷害。" },
+      { name: "順著網線肏你全家", type: "主動", desc: "造成 500 點魔法傷害以及【破盾】。" },
+      { name: "看你是太久沒被我操了", type: "主動", desc: "機率造成全負面效果（焚燒、技窮、破盾、虛弱、恐懼、繳械）與 9999 雙修傷害。" },
+      { name: "一定讓你媽懷孕", type: "主動", desc: "必定懷孕！造成對方 600 點魔法傷害。" },
+      { name: "你老婆超愛我的大雞巴", type: "特殊技", desc: "造成 1000 點魔法傷害並對敵方全體施加【技窮】。" },
+      { name: "性感習近平", type: "主動", desc: "回復我方全員 70% 最大生命，並同時發動我方全體成員的技能！" },
+      { name: "直升飛機起飛囉", type: "回合技", desc: "每回合造成敵方一名成員【焚燒】以及 200 點物理傷害。" },
+      { name: "我是L", type: "被動", desc: "免疫一次致命傷害；發動後每受 200 傷害提升隊友速度與防禦。" },
+      { name: "解", type: "回合技", desc: "造成 500 點傷害，並有 25% 機率連環再次發動一半傷害。" },
+      { name: "再契象 五星級飯店收據", type: "被動", desc: "當我方任一角色受到 600 以上傷害時，恢復 300 生命。" },
+      { name: "Wild Cyclone（狂嘯疾風）", type: "主動", desc: "若速/防/物攻均不低於對手，造成 2 倍物攻傷害。" },
+      { name: "Royal Straight Flush（皇家同花順）", type: "主動", desc: "對敵方全體造成高額物理巨量傷害。" },
+      { name: "孤注一擲", type: "主動", desc: "以 100 點生命為代價獲得重抽一次能力的機會。" },
+      { name: "半夜吃火鍋", type: "回合技", desc: "回復 100 點生命。" },
+      { name: "ALL IN", type: "被動", desc: "血量 < 250 且有敵人血量 < 500 時，立即行動；若未造成擊殺則扣除剩餘血量。" },
+      { name: "火球術", type: "主動", desc: "造成【焚燒】效果，並造成 200 點傷害。" },
+      { name: "Explosion", type: "主動", desc: "對除自己外所有人造成 700 點巨額傷害，自身【繳械】2 回合。" },
+      { name: "噴水", type: "追擊", desc: "完全解除與淨化隊伍所有人的【焚燒】狀態！" },
+      { name: "興許是迴圈", type: "被動", desc: "提高 60% 連擊率，連擊時同步觸發追擊技能。" }
+    ];
+
+    const app = createApp({
+      setup() {
+        const currentTab = ref('battle');
+        const battleMode = ref(3); // 1, 3, 5
+        const teamA = ref([]);
+        const teamB = ref([]);
+        const battleLogs = ref([]);
+        const currentRound = ref(1);
+        const battleInProgress = ref(false);
+        const isAutoPlaying = ref(false);
+        const winner = ref(null);
+        let autoPlayTimer = null;
+
+        // Searches
+        const charSearch = ref('');
+        const skillSearch = ref('');
+
+        // Floating Tooltip
+        const tooltip = ref({ show: false, title: '', desc: '', stats: null, x: 0, y: 0 });
+
+        // Initialize team slots based on mode
+        const initTeams = () => {
+          const createSlot = (charName, skillName) => ({
+            characterName: charName,
+            secondarySkillName: skillName || '',
+            maxHp: 2000,
+            currentHp: 2000,
+            currentStats: { patk: 0, matk: 0, def: 0, speed: 0 },
+            intrinsicSkill: { name: '', type: '', desc: '' },
+            secondarySkill: null,
+            statuses: {
+              burn: 0,         // Stacks up to 15
+              fear: false,     // +20% dmg taken
+              weak: false,     // -40% dmg dealt
+              disarm: false,   // Cannot basic attack
+              taunt: false,    // Forced focus
+              imprisoned: 0,  // 監禁 2 turns
+              shieldBreak: false,
+              silence: false
+            },
+            lives: 1
+          });
+
+          teamA.value = [];
+          teamB.value = [];
+
+          // Presets
+          const presetA = ["炎拳", "露娜", "柯文哲", "10式戦車", "晨晨"];
+          const presetB = ["家暴王", "薩恩", "屏東公園的500快阿姨", "Chance", "謝新達"];
+
+          for (let i = 0; i < battleMode.value; i++) {
+            teamA.value.push(createSlot(presetA[i % presetA.length], i === 0 ? "噴水" : ""));
+            teamB.value.push(createSlot(presetB[i % presetB.length], i === 1 ? "在將對方燒成灰燼前不會停下來的火焰" : ""));
+            applySlotSetup('A', i);
+            applySlotSetup('B', i);
+          }
         };
 
-        function switchTab(tab) {
-            document.getElementById('tab-arena').classList.toggle('hidden', tab !== 'arena');
-            document.getElementById('tab-codex').classList.toggle('hidden', tab !== 'codex');
-            
-            document.getElementById('nav-arena').className = tab === 'arena' 
-                ? 'px-4 py-2 text-sm font-semibold rounded-lg bg-blue-600 text-white transition hover:bg-blue-500'
-                : 'px-4 py-2 text-sm font-semibold rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 transition';
-            document.getElementById('nav-codex').className = tab === 'codex'
-                ? 'px-4 py-2 text-sm font-semibold rounded-lg bg-blue-600 text-white transition hover:bg-blue-500'
-                : 'px-4 py-2 text-sm font-semibold rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 transition';
-        }
+        const applySlotSetup = (team, idx) => {
+          const slot = team === 'A' ? teamA.value[idx] : teamB.value[idx];
+          const charData = RAW_CHARACTERS.find(c => c.name === slot.characterName) || RAW_CHARACTERS[0];
+          
+          slot.maxHp = 2000 + (charData.def * 100);
+          slot.currentHp = slot.maxHp;
+          slot.currentStats = {
+            patk: charData.patk * 50,
+            matk: charData.matk * 50,
+            def: charData.def * 10,
+            speed: charData.spd * 10 + 10
+          };
+          slot.intrinsicSkill = {
+            name: charData.skillName,
+            type: charData.skillType,
+            desc: charData.skillDesc
+          };
 
-        function changeBattleMode(mode) {
-            battleMode = parseInt(mode);
-            blueTeamSetup = generateUniqueSetup(battleMode);
-            redTeamSetup = generateUniqueSetup(battleMode);
-            renderSetupSlots();
-        }
+          if (slot.secondarySkillName) {
+            const sk = RAW_SKILLS.find(s => s.name === slot.secondarySkillName);
+            slot.secondarySkill = sk ? { name: sk.name, type: sk.type, desc: sk.desc } : null;
+          } else {
+            slot.secondarySkill = null;
+          }
+        };
 
-        // Helper to generate non-repeating character and skill selections per team
-        function generateUniqueSetup(count) {
-            const setup = [];
-            const usedChars = new Set();
-            const usedSkills = new Set();
+        const changeBattleMode = (mode) => {
+          battleMode.value = mode;
+          resetBattle();
+          initTeams();
+        };
 
-            for (let i = 0; i < count; i++) {
-                // Find unused character
-                let charIdx;
-                let attempts = 0;
-                do {
-                    charIdx = Math.floor(Math.random() * RAW_CHARACTERS.length);
-                    attempts++;
-                } while (usedChars.has(charIdx) && attempts < 100);
-                usedChars.add(charIdx);
+        // Available dropdown selections filtering duplicates
+        const availableCharacters = (team, currentVal) => {
+          const teamSlots = team === 'A' ? teamA.value : teamB.value;
+          const chosenNames = teamSlots.map(s => s.characterName).filter(n => n !== currentVal);
+          return RAW_CHARACTERS.map(c => ({
+            name: c.name,
+            disabled: chosenNames.includes(c.name)
+          }));
+        };
 
-                // Find unused skill (or -1)
-                let skillIdx = -1;
-                if (Math.random() > 0.4) {
-                    let skillAttempts = 0;
-                    do {
-                        skillIdx = Math.floor(Math.random() * RAW_SKILLS.length);
-                        skillAttempts++;
-                    } while (usedSkills.has(skillIdx) && skillAttempts < 100);
-                    if (skillAttempts < 100) usedSkills.add(skillIdx);
-                    else skillIdx = -1;
-                }
+        const availableSkills = (team, currentVal) => {
+          const teamSlots = team === 'A' ? teamA.value : teamB.value;
+          const chosenSkills = teamSlots.map(s => s.secondarySkillName).filter(s => s && s !== currentVal);
+          return RAW_SKILLS.map(s => ({
+            name: s.name,
+            disabled: chosenSkills.includes(s.name)
+          }));
+        };
 
-                setup.push({ charIndex: charIdx, skillIndex: skillIdx });
+        const onCharacterSelect = (team, idx) => applySlotSetup(team, idx);
+        const onSkillSelect = (team, idx) => applySlotSetup(team, idx);
+
+        const getCharData = (name) => RAW_CHARACTERS.find(c => c.name === name);
+
+        // Tooltip handler
+        const showTooltip = (evt, info) => {
+          if (!info) return;
+          tooltip.value = {
+            show: true,
+            title: info.title || info.name,
+            desc: info.desc || info.skillDesc,
+            stats: info.patk !== undefined ? { patk: info.patk, matk: info.matk, def: info.def, spd: info.spd } : null,
+            x: Math.min(evt.clientX + 15, window.innerWidth - 320),
+            y: Math.min(evt.clientY + 15, window.innerHeight - 200)
+          };
+        };
+        const hideTooltip = () => { tooltip.value.show = false; };
+
+        const randomizeTeams = () => {
+          resetBattle();
+          const shuffledChars = [...RAW_CHARACTERS].sort(() => Math.random() - 0.5);
+          const shuffledSkills = [...RAW_SKILLS].sort(() => Math.random() - 0.5);
+
+          for (let i = 0; i < battleMode.value; i++) {
+            teamA.value[i].characterName = shuffledChars[i].name;
+            teamA.value[i].secondarySkillName = Math.random() > 0.4 ? shuffledSkills[i].name : '';
+            applySlotSetup('A', i);
+
+            teamB.value[i].characterName = shuffledChars[i + battleMode.value].name;
+            teamB.value[i].secondarySkillName = Math.random() > 0.4 ? shuffledSkills[i + battleMode.value].name : '';
+            applySlotSetup('B', i);
+          }
+        };
+
+        const getHpPercent = (slot) => Math.max(0, Math.min(100, Math.round((slot.currentHp / slot.maxHp) * 100)));
+
+        const activeStatuses = (slot) => {
+          const res = {};
+          if (slot.statuses.burn > 0) res['burn'] = slot.statuses.burn;
+          if (slot.statuses.imprisoned > 0) res['imprisoned'] = slot.statuses.imprisoned;
+          if (slot.statuses.fear) res['fear'] = true;
+          if (slot.statuses.weak) res['weak'] = true;
+          if (slot.statuses.disarm) res['disarm'] = true;
+          if (slot.statuses.taunt) res['taunt'] = true;
+          if (slot.statuses.shieldBreak) res['shieldBreak'] = true;
+          return res;
+        };
+
+        const getStatusLabel = (key, val) => {
+          const map = {
+            burn: `🔥 焚燒 (${val}層)`,
+            imprisoned: `🔒 監禁 (${val}回合)`,
+            fear: '😱 恐懼',
+            weak: '📉 虛弱',
+            disarm: '🚫 繳械',
+            taunt: '🎯 嘲諷',
+            shieldBreak: '💔 破盾'
+          };
+          return map[key] || key;
+        };
+
+        const getStatusBadgeClass = (key) => {
+          const map = {
+            burn: 'bg-orange-950/80 text-orange-400 border-orange-700',
+            imprisoned: 'bg-purple-950/80 text-purple-300 border-purple-700',
+            fear: 'bg-yellow-950/80 text-yellow-300 border-yellow-700',
+            weak: 'bg-slate-800 text-slate-300 border-slate-600',
+            disarm: 'bg-red-950/80 text-red-300 border-red-800',
+            taunt: 'bg-blue-950/80 text-blue-300 border-blue-700',
+            shieldBreak: 'bg-rose-950/80 text-rose-300 border-rose-800'
+          };
+          return map[key] || 'bg-slate-800 text-slate-300';
+        };
+
+        // Battle Simulation Core Logic
+        const addLog = (msg, type = 'info') => {
+          const time = new Date().toLocaleTimeString('zh-TW', { hour12: false });
+          battleLogs.value.push({ time, msg, type });
+          nextTick(() => {
+            const el = document.querySelector('.overflow-y-auto');
+            if (el) el.scrollTop = el.scrollHeight;
+          });
+        };
+
+        const getLogStyle = (type) => {
+          const map = {
+            info: 'bg-slate-900 border-slate-800 text-slate-300',
+            dmg: 'bg-red-950/40 border-red-900/60 text-red-200',
+            heal: 'bg-emerald-950/40 border-emerald-900/60 text-emerald-200',
+            status: 'bg-purple-950/40 border-purple-900/60 text-purple-200',
+            skill: 'bg-amber-950/40 border-amber-900/60 text-amber-200',
+            death: 'bg-rose-950 border-rose-800 text-rose-100 font-bold'
+          };
+          return map[type] || 'bg-slate-900 text-slate-300';
+        };
+
+        const getAliveCount = (team) => (team === 'A' ? teamA.value : teamB.value).filter(s => s.currentHp > 0).length;
+
+        const clearStatusesOnDeath = (slot) => {
+          slot.statuses = { burn: 0, fear: false, weak: false, disarm: false, taunt: false, imprisoned: 0, shieldBreak: false, silence: false };
+        };
+
+        const applyDamage = (target, attacker, rawDmg, isMagic = false) => {
+          if (target.currentHp <= 0) return 0; // Exclude dead targets
+
+          let dmg = rawDmg;
+          if (attacker.statuses.weak) dmg *= 0.6;
+          if (target.statuses.fear) dmg *= 1.2;
+          if (target.statuses.imprisoned > 0) dmg *= 1.3;
+
+          let defReduction = target.statuses.shieldBreak ? 0 : (target.currentStats.def * 0.5);
+          let finalDmg = Math.max(10, Math.round(dmg - defReduction));
+
+          target.currentHp -= finalDmg;
+          addLog(`💥 <b class="${attacker.team === 'A' ? 'text-blue-400' : 'text-red-400'}">${attacker.characterName}</b> 對 <b class="${target.team === 'A' ? 'text-blue-400' : 'text-red-400'}">${target.characterName}</b> 造成 <b>${finalDmg}</b> 點${isMagic ? '魔法' : '物理'}傷害`, 'dmg');
+
+          if (target.currentHp <= 0) {
+            target.currentHp = 0;
+            clearStatusesOnDeath(target);
+            addLog(`☠️ <b class="${target.team === 'A' ? 'text-blue-400' : 'text-red-400'}">${target.characterName}</b> 戰鬥不能，已倒下！(負面狀態已清空)`, 'death');
+          }
+          return finalDmg;
+        };
+
+        const startBattle = () => {
+          battleInProgress.value = true;
+          winner.value = null;
+          currentRound.value = 1;
+          battleLogs.value = [];
+          addLog("⚔️ 偉大計劃 對戰正式開始！兩隊準備就緒。", "skill");
+        };
+
+        const stepTurn = () => {
+          if (winner.value) return;
+
+          // Gather all alive units
+          const units = [
+            ...teamA.value.map(s => ({ ...s, team: 'A' })),
+            ...teamB.value.map(s => ({ ...s, team: 'B' }))
+          ].filter(u => u.currentHp > 0);
+
+          if (units.length === 0) return;
+
+          // Order by Speed
+          units.sort((a, b) => b.currentStats.speed - a.currentStats.speed);
+
+          addLog(`--- 🌟 第 ${currentRound.value} 回合開始 ---`, "info");
+
+          for (const u of units) {
+            // Re-find current state in reactive arrays
+            const teamArr = u.team === 'A' ? teamA.value : teamB.value;
+            const liveUnit = teamArr.find(x => x.characterName === u.characterName);
+            if (!liveUnit || liveUnit.currentHp <= 0) continue; // Skip if dead mid-turn
+
+            // Check Imprisonment (監禁)
+            if (liveUnit.statuses.imprisoned > 0) {
+              liveUnit.statuses.imprisoned--;
+              addLog(`🔒 <b class="${u.team === 'A' ? 'text-blue-400' : 'text-red-400'}">${liveUnit.characterName}</b> 處於【監禁】狀態，無法行動！(剩餘 ${liveUnit.statuses.imprisoned} 回合)`, "status");
+              continue;
             }
-            return setup;
-        }
 
-        function renderSetupSlots() {
-            const renderTeam = (setup, elementId, teamColor) => {
-                const container = document.getElementById(elementId);
-                container.innerHTML = '';
+            // Burn Tick
+            if (liveUnit.statuses.burn > 0) {
+              const burnDmg = liveUnit.statuses.burn * 120;
+              liveUnit.currentHp -= burnDmg;
+              addLog(`🔥 <b class="${u.team === 'A' ? 'text-blue-400' : 'text-red-400'}">${liveUnit.characterName}</b> 受到 ${liveUnit.statuses.burn} 層【焚燒】灼燒，扣除 ${burnDmg} HP`, 'dmg');
+              if (liveUnit.currentHp <= 0) {
+                liveUnit.currentHp = 0;
+                clearStatusesOnDeath(liveUnit);
+                addLog(`☠️ <b class="${u.team === 'A' ? 'text-blue-400' : 'text-red-400'}">${liveUnit.characterName}</b> 被焚燒殆盡！`, 'death');
+                continue;
+              }
+            }
 
-                // Collect currently selected characters and skills in this specific team
-                const selectedCharsInTeam = setup.map(s => s.charIndex);
-                const selectedSkillsInTeam = setup.map(s => s.skillIndex);
-
-                setup.forEach((slot, idx) => {
-                    const charObj = RAW_CHARACTERS[slot.charIndex];
-                    const extraSkillObj = slot.skillIndex >= 0 ? RAW_SKILLS[slot.skillIndex] : null;
-
-                    const slotEl = document.createElement('div');
-                    slotEl.className = 'bg-slate-900 border border-slate-800 rounded-xl p-3.5 space-y-2.5 transition hover:border-slate-700';
-                    
-                    // Render character options (Disable duplicates within same team)
-                    let charOptions = RAW_CHARACTERS.map((c, i) => {
-                        const isTakenByOtherSlot = selectedCharsInTeam.some((taken, sIdx) => sIdx !== idx && taken === i);
-                        return `<option value="${i}" ${slot.charIndex === i ? 'selected' : ''} ${isTakenByOtherSlot ? 'disabled class="text-slate-600 bg-slate-950"' : ''}>${c.name} [${c.role}]${isTakenByOtherSlot ? ' (隊內已選擇)' : ''}</option>`;
-                    }).join('');
-
-                    // Render skill options (Disable duplicates within same team, except -1)
-                    let skillOptions = `<option value="-1">-- 無額外通用技能 --</option>` + 
-                        RAW_SKILLS.map((s, i) => {
-                            const isTakenByOtherSlot = selectedSkillsInTeam.some((taken, sIdx) => sIdx !== idx && taken === i);
-                            return `<option value="${i}" ${slot.skillIndex === i ? 'selected' : ''} ${isTakenByOtherSlot ? 'disabled class="text-slate-600 bg-slate-950"' : ''}>${s.name} (${s.trigger})${isTakenByOtherSlot ? ' (隊內已裝備)' : ''}</option>`;
-                        }).join('');
-
-                    slotEl.innerHTML = `
-                        <div class="flex items-center justify-between pb-1 border-b border-slate-800/80">
-                            <span class="text-xs font-bold text-slate-300 flex items-center gap-1.5">
-                                <span class="w-5 h-5 rounded-full ${teamColor === 'blue' ? 'bg-blue-600/30 text-blue-400 border border-blue-500/40' : 'bg-red-600/30 text-red-400 border border-red-500/40'} flex items-center justify-center text-[10px]">${idx + 1}</span>
-                                席位配置
-                            </span>
-                            <span class="text-[11px] px-2 py-0.5 rounded bg-slate-800 text-amber-300 font-semibold border border-slate-700">${charObj.role}</span>
-                        </div>
-
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                            <div>
-                                <label class="block text-[11px] text-slate-400 font-semibold mb-1">登場角色：</label>
-                                <select onchange="updateSlot('${teamColor}', ${idx}, 'charIndex', this.value)" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-slate-200 focus:outline-none focus:border-amber-500 transition">
-                                    ${charOptions}
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-[11px] text-slate-400 font-semibold mb-1">攜帶副技能：</label>
-                                <select onchange="updateSlot('${teamColor}', ${idx}, 'skillIndex', this.value)" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-slate-200 focus:outline-none focus:border-amber-500 transition">
-                                    ${skillOptions}
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="relative group bg-slate-950/80 border border-slate-800 rounded-lg p-2.5 space-y-2 cursor-pointer hover:border-amber-500/50 transition">
-                            <div>
-                                <div class="flex items-center justify-between">
-                                    <span class="text-xs font-bold text-amber-400 flex items-center gap-1">⚡ 天生招式：${charObj.skillName}</span>
-                                    <span class="text-[10px] text-slate-400 border border-slate-700 rounded px-1.5">${charObj.triggerType}</span>
-                                </div>
-                                <p class="text-[11px] text-slate-300 mt-1 leading-snug line-clamp-2">${charObj.skillDesc || '無特殊描述'}</p>
-                            </div>
-
-                            ${extraSkillObj ? `
-                            <div class="pt-2 border-t border-slate-800/80">
-                                <div class="flex items-center justify-between">
-                                    <span class="text-xs font-bold text-cyan-400 flex items-center gap-1">🔮 攜帶副技能：${extraSkillObj.name}</span>
-                                    <span class="text-[10px] text-cyan-300/80 border border-cyan-800 rounded px-1.5">${extraSkillObj.trigger}</span>
-                                </div>
-                                <p class="text-[11px] text-slate-300 mt-1 leading-snug line-clamp-2">${extraSkillObj.desc}</p>
-                            </div>
-                            ` : `<div class="pt-1.5 border-t border-slate-800/50 text-[11px] text-slate-500 italic">未裝備副技能</div>`}
-                            
-                            <div class="grid grid-cols-4 gap-1 text-center font-mono text-[11px] pt-1 border-t border-slate-800/60">
-                                <div class="bg-slate-900/80 rounded py-0.5"><span class="text-slate-500 text-[9px] block">物</span><span class="text-amber-300 font-bold">${charObj.phy}</span></div>
-                                <div class="bg-slate-900/80 rounded py-0.5"><span class="text-slate-500 text-[9px] block">魔</span><span class="text-purple-300 font-bold">${charObj.mag}</span></div>
-                                <div class="bg-slate-900/80 rounded py-0.5"><span class="text-slate-500 text-[9px] block">防</span><span class="text-blue-300 font-bold">${charObj.def}</span></div>
-                                <div class="bg-slate-900/80 rounded py-0.5"><span class="text-slate-500 text-[9px] block">速</span><span class="text-emerald-300 font-bold">${charObj.spd}</span></div>
-                            </div>
-                        </div>
-                    `;
-                    container.appendChild(slotEl);
-                });
-            };
-
-            renderTeam(blueTeamSetup, 'blue-team-slots', 'blue');
-            renderTeam(redTeamSetup, 'red-team-slots', 'red');
-        }
-
-        function updateSlot(team, idx, key, val) {
-            const arr = team === 'blue' ? blueTeamSetup : redTeamSetup;
-            arr[idx][key] = parseInt(val);
-            renderSetupSlots();
-        }
-
-        function randomizeTeams() {
-            blueTeamSetup = generateUniqueSetup(battleMode);
-            redTeamSetup = generateUniqueSetup(battleMode);
-            renderSetupSlots();
-        }
-
-        function startBattle() {
-            if (battleTimer) clearTimeout(battleTimer);
-
-            const createFighter = (slot, team, index) => {
-                const baseChar = RAW_CHARACTERS[slot.charIndex];
-                const extraSkill = slot.skillIndex >= 0 ? RAW_SKILLS[slot.skillIndex] : null;
-                const maxHp = baseChar.name === '防禦盾' ? 100 : (2000 + baseChar.def * 100);
+            // Special Skill Logic: 薩恩 (Sarn Teammate Sacrifice)
+            if (liveUnit.characterName === "薩恩") {
+              const aliveTeammates = teamArr.filter(t => t.characterName !== "薩恩" && t.currentHp > 0);
+              if (aliveTeammates.length > 0) {
+                const victim = aliveTeammates[0];
+                addLog(`🔥 薩恩發動【神罰「炎拳」】，處死隊友 <b class="text-amber-300">${victim.characterName}</b> 並繼承其全部數值與技能！`, 'skill');
                 
-                return {
-                    id: `${team}_${index}_${Date.now()}`,
-                    team: team,
-                    name: baseChar.name,
-                    role: baseChar.role,
-                    phy: baseChar.phy,
-                    mag: baseChar.mag,
-                    def: baseChar.def,
-                    spd: baseChar.spd,
-                    hp: maxHp,
-                    maxHp: maxHp,
-                    lives: baseChar.name === '防禦盾' ? 10 : (baseChar.name === '謝新達' ? 2 : (baseChar.name === '梁念容LV.999' ? 10 : 1)),
-                    intrinsicSkill: {
-                        name: baseChar.skillName,
-                        type: baseChar.skillType,
-                        trigger: baseChar.triggerType,
-                        desc: baseChar.skillDesc,
-                        hasCC: baseChar.hasCC,
-                        ccDesc: baseChar.ccDesc
-                    },
-                    extraSkill: extraSkill,
-                    statuses: {
-                        burn: 0,
-                        fear: 0,
-                        weakness: 0,
-                        disarm: 0,
-                        silence: 0,
-                        taunt: baseChar.name === '防禦盾' || baseChar.name === '露娜',
-                        imprisoned: 0,
-                        hardCC: 0,
-                        shieldBreak: 0,
-                        confidence: 0,
-                        breachCount: 0,
-                        mahjongTurns: 0
-                    },
-                    stacks: {
-                        damageBoost: 1.0,
-                        crown: 0
-                    },
-                    isAlive: true
-                };
-            };
+                // Inherit stats
+                liveUnit.currentStats.patk += victim.currentStats.patk;
+                liveUnit.currentStats.matk += victim.currentStats.matk;
+                liveUnit.currentStats.def += victim.currentStats.def;
+                liveUnit.currentStats.speed += victim.currentStats.speed;
+                liveUnit.intrinsicSkill = { ...victim.intrinsicSkill };
 
-            const blueTeam = blueTeamSetup.map((s, i) => createFighter(s, 'blue', i));
-            const redTeam = redTeamSetup.map((s, i) => createFighter(s, 'red', i));
-
-            battleState = {
-                turn: 1,
-                blueTeam: blueTeam,
-                redTeam: redTeam,
-                fighters: [...blueTeam, ...redTeam],
-                turnQueue: [],
-                activeFighterId: null,
-                isFinished: false,
-                roundDamageTaken: 0
-            };
-
-            document.getElementById('setup-panel').classList.add('hidden');
-            document.getElementById('battle-panel').classList.remove('hidden');
-            document.getElementById('combat-log').innerHTML = '';
-            document.getElementById('turn-counter').innerText = 1;
-
-            logEvent(`⚔️ <b>對戰開始！</b> 藍方 (${blueTeam.length}人) VS 紅方 (${redTeam.length}人)`, 'text-amber-400 font-bold border-b border-slate-800 pb-1');
-
-            isPaused = false;
-            updatePauseUI();
-            renderBattlefield();
-            runBattleLoop();
-        }
-
-        // Restart current battle with all characters restored to 100% full health and fresh status
-        function restartBattle() {
-            if (battleTimer) clearTimeout(battleTimer);
-            startBattle();
-        }
-
-        function returnToSetup() {
-            if (battleTimer) clearTimeout(battleTimer);
-            document.getElementById('setup-panel').classList.remove('hidden');
-            document.getElementById('battle-panel').classList.add('hidden');
-        }
-
-        function togglePause() {
-            isPaused = !isPaused;
-            updatePauseUI();
-            if (!isPaused && !battleState.isFinished) runBattleLoop();
-        }
-
-        function updatePauseUI() {
-            document.getElementById('icon-pause').className = isPaused ? "fa-solid fa-play" : "fa-solid fa-pause";
-            document.getElementById('text-pause').innerText = isPaused ? "繼續" : "暫停";
-        }
-
-        function setSpeed(ms) {
-            battleSpeed = ms;
-            document.querySelectorAll('.speed-btn').forEach(btn => {
-                btn.className = parseInt(btn.dataset.speed) === ms 
-                    ? "speed-btn px-2.5 py-1 text-xs rounded bg-blue-600 text-white font-bold"
-                    : "speed-btn px-2.5 py-1 text-xs rounded bg-slate-800 text-slate-300 font-bold";
-            });
-        }
-
-        function runBattleLoop() {
-            if (isPaused || battleState.isFinished) return;
-            stepTurn();
-            if (!battleState.isFinished && !isPaused) {
-                battleTimer = setTimeout(runBattleLoop, battleSpeed);
-            }
-        }
-
-        function stepTurn() {
-            if (battleState.isFinished) return;
-
-            if (battleState.turnQueue.length === 0) {
-                const alive = battleState.fighters.filter(f => f.isAlive);
-                const blueAlive = alive.some(f => f.team === 'blue');
-                const redAlive = alive.some(f => f.team === 'red');
-
-                if (!blueAlive || !redAlive) {
-                    battleState.isFinished = true;
-                    const winner = blueAlive ? "藍方 (Alpha)" : "紅方 (Beta)";
-                    logEvent(`🏆 <b>對戰結束！勝利者為：<span class="${blueAlive ? 'text-blue-400' : 'text-red-400'}">${winner}</span>！</b>`, 'text-amber-300 font-black text-sm py-2 border-t border-b border-amber-500/30 my-2');
-                    renderBattlefield();
-                    return;
-                }
-
-                alive.sort((a, b) => b.spd - a.spd || (Math.random() - 0.5));
-                battleState.turnQueue = alive;
-                battleState.roundDamageTaken = 0;
-                document.getElementById('turn-counter').innerText = battleState.turn;
-                logEvent(`--- <b>第 ${battleState.turn} 回合開始</b> ---`, 'text-slate-400 text-[11px] font-bold mt-2');
-                
-                processTurnStartSkills();
+                // Execute victim
+                victim.currentHp = 0;
+                clearStatusesOnDeath(victim);
+              }
             }
 
-            if (battleState.turnQueue.length > 0) {
-                const currentFighter = battleState.turnQueue.shift();
-                if (currentFighter.isAlive) {
-                    battleState.activeFighterId = currentFighter.id;
-                    executeFighterTurn(currentFighter);
-                }
-            }
-
-            if (battleState.turnQueue.length === 0) {
-                checkRoundEndTriggers();
-                battleState.turn++;
-            }
-
-            renderBattlefield();
-        }
-
-        function processTurnStartSkills() {
-            battleState.fighters.filter(f => f.isAlive).forEach(f => {
-                // Burn Damage
-                if (f.statuses.burn > 0) {
-                    const burnDmg = Math.floor((f.phy + f.mag) * 20 * f.statuses.burn);
-                    f.hp = Math.max(0, f.hp - burnDmg);
-                    logEvent(`🔥 [${f.name}] 受到【焚燒】傷害 ${burnDmg} 點！`, 'text-orange-400');
-                    if (f.hp <= 0) checkDeath(f);
-                }
-
-                // 喝酒司機 Turn Start
-                if (f.isAlive && f.name === '喝酒司機') {
-                    const roll = Math.random();
-                    if (roll < 0.20) {
-                        f.hp = 0;
-                        logEvent(`🍺 [喝酒司機] 猝死！`, 'text-red-500 font-bold');
-                        checkDeath(f);
-                    } else if (roll < 0.50) {
-                        f.statuses.imprisoned = 1;
-                        logEvent(`🚨 [喝酒司機] 酒駕被捕進入【監禁】！`, 'text-amber-400 font-bold');
-                    } else {
-                        f.statuses.confidence = 2;
-                        logEvent(`💪 [喝酒司機] 獲得酒精自信 (傷害200%)！`, 'text-emerald-400 font-bold');
-                    }
-                }
-
-                // CAS Monster Opening Strike
-                if (f.isAlive && f.name === '凱斯芒斯特(CAS Monster)') {
-                    const aliveEnemies = battleState.fighters.filter(e => e.team !== f.team && e.isAlive);
-                    if (aliveEnemies.length > 0) {
-                        logEvent(`🚀 [CAS Monster] 開局發射 6 枚 Kh-38MT 飛彈飽和打擊！`, 'text-amber-400 font-bold');
-                        for(let i = 0; i < 6; i++) {
-                            // 動態重新過濾存活敵方目標，避免攻擊已死亡對象
-                            const currentEnemies = battleState.fighters.filter(e => e.team !== f.team && e.isAlive);
-                            if (currentEnemies.length === 0) break;
-                            
-                            const target = currentEnemies[Math.floor(Math.random() * currentEnemies.length)];
-                            if (target && target.isAlive) {
-                                if (Math.random() < 0.8) {
-                                    target.hp = 0;
-                                    logEvent(`💥 飛彈直擊！[${target.name}] 直接被摧毀！`, 'text-red-500 font-bold');
-                                    checkDeath(target, f);
-                                } else {
-                                    target.statuses.disarm = 1;
-                                    target.statuses.hardCC = 1;
-                                    logEvent(`💥 飛彈轟炸！[${target.name}] 遭到繳械與強行封鎖！`, 'text-orange-400');
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-        // 取得合法的存活目標（優先處理嘲諷，自動排除已死亡角色）
-        function getValidTarget(attacker) {
-            const aliveEnemies = battleState.fighters.filter(f => f.team !== attacker.team && f.isAlive);
-            if (aliveEnemies.length === 0) return null;
-            
-            const tauntTarget = aliveEnemies.find(e => e.statuses.taunt);
-            if (tauntTarget) return tauntTarget;
-
-            return aliveEnemies[Math.floor(Math.random() * aliveEnemies.length)];
-        }
-
-        function checkRoundEndTriggers() {
-            // 戰斬 Round End Counter
-            if (battleState.roundDamageTaken >= 1000) {
-                battleState.fighters.filter(f => f.isAlive && f.name === '戰斬').forEach(zz => {
-                    const enemies = battleState.fighters.filter(e => e.team !== zz.team && e.isAlive);
-                    if (enemies.length > 0) {
-                        logEvent(`⚔️ [戰斬] 觸發【焙樋咎逝鷂樋茴覷】！團隊累積受傷過千，展開強烈反擊！`, 'text-red-400 font-bold');
-                        enemies.forEach(e => {
-                            if (e.isAlive) applyDamage(zz, e, 400, 'physical');
-                        });
-                    }
-                });
-            }
-        }
-
-        function executeFighterTurn(attacker) {
-            if (!attacker.isAlive) return;
-
-            if (attacker.statuses.imprisoned > 0) {
-                logEvent(`⛓️ [${attacker.name}] 處於【監禁】狀態，無法行動！`, 'text-purple-400 font-bold');
-                attacker.statuses.imprisoned--;
-                return;
-            }
-
-            if (attacker.statuses.hardCC > 0) {
-                logEvent(`🌀 [${attacker.name}] 處於控制狀態，無法行動！`, 'text-purple-400');
-                attacker.statuses.hardCC--;
-                return;
-            }
-
-            // 取得存活敵人
-            let target = getValidTarget(attacker);
-            if (!target) return;
-
-            if (attacker.name === '陳星偉') {
-                attacker.stacks.damageBoost *= 1.5;
-                logEvent(`📈 [陳星偉] 力量膨脹，傷害疊加至 ${attacker.stacks.damageBoost.toFixed(2)}x！`, 'text-amber-400');
-            }
-
-            const useSkill = Math.random() < 0.6;
-
-            if (useSkill && attacker.intrinsicSkill) {
-                executeSkill(attacker, target, attacker.intrinsicSkill);
+            // Special Skill Logic: 柯文哲 (Ke)
+            if (liveUnit.characterName === "柯文哲") {
+              const enemies = (u.team === 'A' ? teamB.value : teamA.value).filter(e => e.currentHp > 0);
+              if (enemies.length > 0) {
+                const target = enemies[Math.floor(Math.random() * enemies.length)];
+                target.statuses.shieldBreak = true;
+                applyDamage(target, { ...liveUnit, team: u.team }, 500, true);
+                target.statuses.imprisoned = 2; // Apply Imprisonment
+                addLog(`⚖️ 柯文哲痛斥「民進黨才是共匪！」，對 ${target.characterName} 施加【監禁】2 回合！`, 'status');
+              }
             } else {
-                if (attacker.statuses.disarm > 0) {
-                    logEvent(`🚫 [${attacker.name}] 處於繳械狀態，無法進行普通攻擊！`, 'text-slate-400');
-                    attacker.statuses.disarm--;
-                } else {
-                    let rawDmg = (attacker.phy * 40 + 100) * attacker.stacks.damageBoost;
-                    if (attacker.statuses.weakness > 0) rawDmg *= 0.6;
-                    if (attacker.statuses.confidence > 0) rawDmg *= 2.0;
+              // Basic Attack / Skill Execution
+              const enemies = (u.team === 'A' ? teamB.value : teamA.value).filter(e => e.currentHp > 0);
+              if (enemies.length > 0) {
+                const target = enemies[Math.floor(Math.random() * enemies.length)];
+                const baseAtk = Math.max(liveUnit.currentStats.patk, liveUnit.currentStats.matk) || 200;
+                applyDamage(target, { ...liveUnit, team: u.team }, baseAtk, false);
 
-                    const dealt = applyDamage(attacker, target, rawDmg, 'physical');
-                    logEvent(`⚔️ [${attacker.name}] 對 [${target.name}] 普通攻擊，造成 ${dealt} 點傷害！`, attacker.team === 'blue' ? 'text-blue-300' : 'text-red-300');
+                // Check Burn Skill
+                if (liveUnit.secondarySkillName === "在將對方燒成灰燼前不會停下來的火焰") {
+                  target.statuses.burn = Math.min(15, (target.statuses.burn || 0) + Math.floor(Math.random() * 3) + 1);
+                  addLog(`🔥 觸發被動火焰，為 ${target.characterName} 附上【焚燒】(目前 ${target.statuses.burn} 層)`, 'status');
                 }
-            }
 
-            if (attacker.isAlive && attacker.extraSkill && Math.random() < 0.45) {
-                // 再次確保目標存活
-                let skillTarget = getValidTarget(attacker);
-                if (skillTarget) {
-                    logEvent(`🔮 [${attacker.name}] 發動副技能【${attacker.extraSkill.name}】！`, 'text-cyan-400');
-                    executeGenericSkill(attacker, skillTarget, attacker.extraSkill);
+                // Check Cleansing Water Skill (噴水)
+                if (liveUnit.secondarySkillName === "噴水") {
+                  teamArr.forEach(t => { t.statuses.burn = 0; });
+                  addLog(`💧 <b class="${u.team === 'A' ? 'text-blue-400' : 'text-red-400'}">${liveUnit.characterName}</b> 發動【噴水】，淨化了我方隊伍所有人的【焚燒】！`, 'heal');
                 }
-            }
-        }
-
-        function applyDamage(attacker, defender, rawDmg, type = 'physical') {
-            // 若防守者已死亡，不執行傷害與判定
-            if (!defender || !defender.isAlive) return 0;
-
-            if (defender.name === '牢大科比' && Math.random() < 0.5) {
-                logEvent(`🛡️ [牢大科比] 發動【牢大想你了】，完美閃避攻擊！`, 'text-emerald-400');
-                return 0;
-            }
-            if (defender.name === '用覽趴共九陶' && Math.random() < 0.75) {
-                logEvent(`💪 [用覽趴共九陶] 無視了本次攻擊與控制！`, 'text-emerald-400');
-                return 0;
+              }
             }
 
-            let defFactor = defender.statuses.shieldBreak > 0 ? 0 : (defender.def * 15);
-            let finalDmg = Math.max(20, Math.floor(rawDmg - defFactor));
+            // Check Win condition mid-round
+            if (getAliveCount('A') === 0) { winner.value = 'B'; break; }
+            if (getAliveCount('B') === 0) { winner.value = 'A'; break; }
+          }
 
-            if (defender.name === '防禦盾') finalDmg *= 8;
-            if (defender.statuses.imprisoned > 0) finalDmg = Math.floor(finalDmg * 1.3);
-            if (defender.statuses.fear > 0) finalDmg = Math.floor(finalDmg * 1.2);
+          currentRound.value++;
 
-            defender.hp -= finalDmg;
-            battleState.roundDamageTaken += finalDmg;
+          // Check Win condition end-round
+          if (!winner.value) {
+            if (getAliveCount('A') === 0) winner.value = 'B';
+            else if (getAliveCount('B') === 0) winner.value = 'A';
+          }
 
-            // Trigger 竹子 Passive
-            if (defender.name === '竹子' && finalDmg >= 500 && attacker && attacker.isAlive) {
-                logEvent(`🎋 [竹子] 觸發「蔓延」反傷！對 [${attacker.name}] 造成 200 點傷害並施加【虛弱】！`, 'text-emerald-400');
-                attacker.statuses.weakness = 2;
-                applyDamage(defender, attacker, 200, 'physical');
-            }
+          if (winner.value) {
+            if (autoPlayTimer) clearInterval(autoPlayTimer);
+            isAutoPlaying.value = false;
+            addLog(`🏆 對戰結束！恭喜 ${winner.value === 'A' ? '隊伍 A (藍方)' : '隊伍 B (紅方)'} 取得勝利！`, 'skill');
+          }
+        };
 
-            // Trigger 晨晨 Passive Counter
-            if (defender.team !== attacker?.team) {
-                const chenchen = battleState.fighters.find(f => f.team === defender.team && f.isAlive && f.name === '晨晨');
-                if (chenchen && attacker && attacker.isAlive) {
-                    chenchen.mag += 200;
-                    const healAmt = Math.floor(finalDmg * 0.7);
-                    logEvent(`⚡ [晨晨] 觸發被動【靠我力量】！魔攻提升 200，對全隊施加速拉條並解控！`, 'text-emerald-300 font-bold');
-                    const allies = battleState.fighters.filter(a => a.team === chenchen.team && a.isAlive);
-                    allies.forEach(a => {
-                        a.spd = Math.floor(a.spd * 1.5);
-                        a.statuses.imprisoned = 0;
-                        a.statuses.hardCC = 0;
-                        a.statuses.burn = 0;
-                        if (a.statuses.imprisoned === 0) a.hp = Math.min(a.maxHp, a.hp + healAmt);
-                    });
-                }
-            }
+        const toggleAutoPlay = () => {
+          isAutoPlaying.value = !isAutoPlaying.value;
+          if (isAutoPlaying.value) {
+            if (!battleInProgress.value) startBattle();
+            autoPlayTimer = setInterval(() => {
+              if (winner.value) {
+                clearInterval(autoPlayTimer);
+                isAutoPlaying.value = false;
+              } else {
+                stepTurn();
+              }
+            }, 800);
+          } else {
+            if (autoPlayTimer) clearInterval(autoPlayTimer);
+          }
+        };
 
-            if (defender.hp <= 0) {
-                checkDeath(defender, attacker);
-            }
+        const resetBattle = () => {
+          if (autoPlayTimer) clearInterval(autoPlayTimer);
+          isAutoPlaying.value = false;
+          battleInProgress.value = false;
+          winner.value = null;
+          currentRound.value = 1;
+          battleLogs.value = [];
+          for (let i = 0; i < teamA.value.length; i++) {
+            applySlotSetup('A', i);
+            applySlotSetup('B', i);
+          }
+          addLog("🔄 對戰狀態已重置為最佳狀態！", "info");
+        };
 
-            return finalDmg;
-        }
+        // Filtered Lists for Codex
+        const filteredCharacters = computed(() => {
+          if (!charSearch.value) return RAW_CHARACTERS;
+          const q = charSearch.value.toLowerCase();
+          return RAW_CHARACTERS.filter(c => c.name.toLowerCase().includes(q) || c.position.toLowerCase().includes(q));
+        });
 
-        function checkDeath(fighter, killer = null) {
-            if (fighter.lives > 1) {
-                fighter.lives--;
-                fighter.hp = fighter.maxHp;
-                
-                if (fighter.name === '謝新達') {
-                    fighter.phy *= 2;
-                    const enemies = battleState.fighters.filter(e => e.team !== fighter.team && e.isAlive);
-                    enemies.forEach(e => e.statuses.disarm = 1);
-                    logEvent(`✨ [謝新達] 豬大哥沒死！變身「中華民國總統」，物理攻擊翻倍，敵方全體繳械 1 回合！`, 'text-amber-300 font-bold');
-                } else {
-                    logEvent(`✨ [${fighter.name}] 復活！剩餘生命：${fighter.lives}`, 'text-emerald-300 font-bold');
-                }
-                return;
-            }
+        const filteredSkills = computed(() => {
+          if (!skillSearch.value) return RAW_SKILLS;
+          const q = skillSearch.value.toLowerCase();
+          return RAW_SKILLS.filter(s => s.name.toLowerCase().includes(q) || s.desc.toLowerCase().includes(q));
+        });
 
-            fighter.hp = 0;
-            fighter.isAlive = false;
+        // Initialize on mount
+        initTeams();
 
-            // 清空所有負面狀態與效果
-            for (let key in fighter.statuses) {
-                if (typeof fighter.statuses[key] === 'boolean') {
-                    fighter.statuses[key] = false;
-                } else {
-                    fighter.statuses[key] = 0;
-                }
-            }
-            fighter.stacks.damageBoost = 1.0;
-            fighter.stacks.crown = 0;
-
-            logEvent(`💀 [${fighter.name}] 陣亡離場！`, 'text-red-500 font-bold');
-
-            if (fighter.name === '露娜') {
-                const flamePunch = battleState.fighters.find(f => f.name === '炎拳' && f.isAlive);
-                if (flamePunch) {
-                    flamePunch.phy += fighter.phy;
-                    flamePunch.mag += fighter.mag;
-                    flamePunch.def += fighter.def;
-                    flamePunch.spd += fighter.spd;
-                    logEvent(`🌟 [露娜] 獻祭自己，將全屬性轉移給【炎拳】！`, 'text-amber-300 font-bold');
-                }
-            }
-        }
-
-        function executeSkill(user, target, skill) {
-            // 重新檢索確保目標依然存活
-            if (!target || !target.isAlive) {
-                target = getValidTarget(user);
-                if (!target) return;
-            }
-
-            let dmg = 0;
-            switch(user.name) {
-                case '柯文哲':
-                    dmg = applyDamage(user, target, 500, 'magical');
-                    target.statuses.shieldBreak = 2;
-                    target.statuses.breachCount = (target.statuses.breachCount || 0) + 1;
-                    logEvent(`⚖️ [柯文哲] 施展【民進黨才是共匪】，造成 ${dmg} 點魔傷、破盾並給予 1 層【背信罪】！`, 'text-amber-400 font-bold');
-                    if (target.statuses.breachCount >= 2) {
-                        target.statuses.breachCount = 0;
-                        target.statuses.imprisoned = 2;
-                        logEvent(`⛓️ [柯文哲] 發動【監禁】！使 [${target.name}] 進入監禁狀態 2 回合！`, 'text-red-400 font-black');
-                    }
-                    break;
-                case '消波塊':
-                    const chunkDmg = Math.floor(target.hp * 0.8);
-                    target.hp -= chunkDmg;
-                    logEvent(`🧱 [消波塊] 施展【裡面的人】，對 [${target.name}] 造成 80% 現有血量 (${chunkDmg} 點) 重創！`, 'text-amber-400 font-bold');
-                    battleState.fighters.filter(e => e.team !== user.team && e.isAlive).forEach(e => e.statuses.imprisoned = 1);
-                    user.hp = 0;
-                    user.isAlive = false;
-                    logEvent(`🧱 [消波塊] 將對方全體監禁 1 回合後自我下場！`, 'text-purple-400 font-bold');
-                    break;
-                case 'Chance':
-                    const roll = Math.random();
-                    if (roll < 0.0001) {
-                        logEvent(`✨ [Chance] 觸發 0.01% 極限神蹟！我方直接宣告勝利！`, 'text-amber-300 font-black text-base');
-                        battleState.fighters.filter(f => f.team !== user.team).forEach(f => f.hp = 0);
-                    } else if (roll < 0.25) {
-                        dmg = applyDamage(user, target, 500, 'magical');
-                        logEvent(`🎲 [Chance] 叮！對 [${target.name}] 造成 500 點魔法打擊！`, 'text-amber-400');
-                    } else {
-                        target.statuses.weakness = 2;
-                        logEvent(`🎲 [Chance] 叮！使 [${target.name}] 進入虛弱狀態！`, 'text-amber-400');
-                    }
-                    break;
-                case '炎拳':
-                    if (user.statuses.burn > 0) {
-                        dmg = applyDamage(user, target, (user.phy + user.mag) * 60, 'hybrid');
-                        user.def = 0;
-                        logEvent(`🔥 [炎拳] 爆發炎拳巨額傷害 ${dmg} 點！自身防禦歸零！`, 'text-orange-400 font-bold');
-                    } else {
-                        user.statuses.burn = Math.min(5, user.statuses.burn + 1);
-                        logEvent(`🔥 [炎拳] 進入【焚燒】狀態！`, 'text-orange-300');
-                    }
-                    break;
-                case '黃伯超':
-                    dmg = applyDamage(user, target, user.phy * 120, 'physical');
-                    target.statuses.shieldBreak = 2;
-                    logEvent(`👊 [黃伯超] 發動【超派鐵拳】，造成 ${dmg} 點穿防傷害！`, 'text-orange-500 font-bold');
-                    break;
-                case '薩恩':
-                    const aliveAllies = battleState.fighters.filter(f => f.team === user.team && f.isAlive && f.id !== user.id);
-                    if (aliveAllies.length > 0) {
-                        const victim = aliveAllies[Math.floor(Math.random() * aliveAllies.length)];
-                        
-                        // 繼承隊友數值
-                        user.phy += victim.phy;
-                        user.mag += victim.mag;
-                        user.def += victim.def;
-                        user.spd += victim.spd;
-                        
-                        // 替換天生技能
-                        const oldSkillName = user.intrinsicSkill.name;
-                        user.intrinsicSkill = { ...victim.intrinsicSkill };
-
-                        // 處死隊友
-                        victim.hp = 0;
-                        victim.isAlive = false;
-
-                        logEvent(`🗡️ [薩恩] 發動【神罰「炎拳」】，強行處死隊友 [${victim.name}]！`, 'text-red-400 font-bold');
-                        logEvent(`⚡ [薩恩] 繼承其屬性 (物+${victim.phy}, 魔+${victim.mag}, 防+${victim.def}, 速+${victim.spd})，並將天生技能【${oldSkillName}】替換為【${user.intrinsicSkill.name}】！`, 'text-amber-300 font-bold');
-                        
-                        checkDeath(victim, user);
-                    } else {
-                        dmg = applyDamage(user, target, (user.phy + user.mag) * 45 + 150, 'magical');
-                        logEvent(`✨ [薩恩] (無可處死隊友) 發動魔法攻擊，對 [${target.name}] 造成 ${dmg} 點傷害！`, 'text-cyan-300');
-                    }
-                    break;
-                case '家暴王':
-                    target.statuses.shieldBreak = 2;
-                    dmg = applyDamage(user, target, user.phy * 70, 'physical');
-                    logEvent(`💥 [家暴王] 發動【家暴神拳】，造成 ${dmg} 傷害並【破盾】！`, 'text-red-400');
-                    break;
-                case '陳米荻':
-                    dmg = applyDamage(user, target, 300, 'magical');
-                    user.hp = Math.min(user.maxHp, user.hp + 600);
-                    logEvent(`🐱 [陳米荻] 可愛地喵了一聲！造成 ${dmg} 傷害並回復 600 點生命值！`, 'text-emerald-300');
-                    break;
-                default:
-                    dmg = applyDamage(user, target, (user.phy + user.mag) * 45 + 150, 'magical');
-                    logEvent(`✨ [${user.name}] 發動技能【${skill.name}】，對 [${target.name}] 造成 ${dmg} 點傷害！`, 'text-cyan-300');
-                    break;
-            }
-        }
-
-        function executeGenericSkill(user, target, skill) {
-            if (skill.desc.includes('回復') || skill.desc.includes('治療')) {
-                const allies = battleState.fighters.filter(f => f.team === user.team && f.isAlive);
-                const lowest = allies.sort((a,b) => (a.hp/a.maxHp) - (b.hp/b.maxHp))[0];
-                if (lowest && lowest.statuses.imprisoned === 0) {
-                    lowest.hp = Math.min(lowest.maxHp, lowest.hp + 250);
-                    logEvent(`💚 [${user.name}] 使用【${skill.name}】為 [${lowest.name}] 恢復 250 HP！`, 'text-emerald-400');
-                }
-            } else {
-                const dmg = applyDamage(user, target, 200 + user.mag * 35, 'magical');
-                logEvent(`💥 [${user.name}] 發動【${skill.name}】，對 [${target.name}] 造成 ${dmg} 點傷害！`, 'text-indigo-300');
-            }
-        }
-
-        function renderBattlefield() {
-            const renderCards = (team, elementId) => {
-                const container = document.getElementById(elementId);
-                container.innerHTML = '';
-                
-                team.forEach(f => {
-                    const hpPercent = Math.max(0, Math.floor((f.hp / f.maxHp) * 100));
-                    const isActive = f.id === battleState.activeFighterId && f.isAlive;
-                    
-                    let hpColor = "bg-emerald-500";
-                    if (hpPercent < 50) hpColor = "bg-amber-500";
-                    if (hpPercent < 20) hpColor = "bg-red-500";
-
-                    const card = document.createElement('div');
-                    card.className = `bg-slate-800/90 border-2 ${isActive ? 'active-turn border-blue-500' : (f.isAlive ? 'border-slate-700' : 'border-slate-800 opacity-50')} rounded-xl p-3 transition shadow-md`;
-                    
-                    card.innerHTML = `
-                        <div class="flex items-center justify-between mb-1.5">
-                            <div class="flex items-center gap-2">
-                                <span class="font-bold text-xs ${f.isAlive ? 'text-slate-100' : 'text-slate-500 line-through'}">${f.name}</span>
-                                <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-700 text-amber-300 font-semibold">${f.role}</span>
-                                ${f.lives > 1 ? `<span class="text-[10px] text-emerald-400 font-bold">❤️ x${f.lives}</span>` : ''}
-                            </div>
-                            <span class="text-[11px] font-mono text-slate-400">${f.hp} / ${f.maxHp} HP</span>
-                        </div>
-                        
-                        <div class="w-full h-2.5 bg-slate-900 rounded-full overflow-hidden mb-2 border border-slate-700/50">
-                            <div class="hp-bar-fill h-full ${hpColor}" style="width: ${hpPercent}%"></div>
-                        </div>
-
-                        <div class="flex items-center justify-between text-[11px] text-slate-400 font-mono">
-                            <span>物:${f.phy} | 魔:${f.mag} | 防:${f.def} | 速:${f.spd}</span>
-                            <div class="flex items-center gap-1">
-                                ${f.statuses.imprisoned > 0 ? `<span class="text-purple-400 font-bold" title="監禁">⛓️</span>` : ''}
-                                ${f.statuses.burn > 0 ? `<span class="text-orange-400 font-bold" title="焚燒">🔥${f.statuses.burn}</span>` : ''}
-                                ${f.statuses.fear > 0 ? `<span class="text-purple-300 font-bold" title="恐懼">😱</span>` : ''}
-                                ${f.statuses.weakness > 0 ? `<span class="text-amber-400 font-bold" title="虛弱">📉</span>` : ''}
-                                ${f.statuses.disarm > 0 ? `<span class="text-red-400 font-bold" title="繳械">🚫</span>` : ''}
-                            </div>
-                        </div>
-                    `;
-                    container.appendChild(card);
-                });
-            };
-
-            renderCards(battleState.blueTeam, 'blue-field');
-            renderCards(battleState.redTeam, 'red-field');
-        }
-
-        function logEvent(msg, styleClass = 'text-slate-300') {
-            const container = document.getElementById('combat-log');
-            const div = document.createElement('div');
-            div.className = styleClass;
-            div.innerHTML = msg;
-            container.appendChild(div);
-            container.scrollTop = container.scrollHeight;
-        }
-
-        function clearLog() {
-            document.getElementById('combat-log').innerHTML = '';
-        }
-
-        function initCodex() {
-            document.getElementById('char-count').innerText = RAW_CHARACTERS.length;
-            document.getElementById('skill-count').innerText = RAW_SKILLS.length;
-            renderCodex();
-        }
-
-        function toggleCodexSubtab(type) {
-            document.getElementById('codex-chars-grid').classList.toggle('hidden', type !== 'chars');
-            document.getElementById('codex-skills-grid').classList.toggle('hidden', type !== 'skills');
-            
-            document.getElementById('subtab-btn-chars').className = type === 'chars'
-                ? 'px-4 py-2 text-xs font-bold rounded-lg bg-amber-500 text-slate-950'
-                : 'px-4 py-2 text-xs font-bold rounded-lg bg-slate-800 text-slate-300';
-            document.getElementById('subtab-btn-skills').className = type === 'skills'
-                ? 'px-4 py-2 text-xs font-bold rounded-lg bg-amber-500 text-slate-950'
-                : 'px-4 py-2 text-xs font-bold rounded-lg bg-slate-800 text-slate-300';
-        }
-
-        function filterCodex() {
-            renderCodex();
-        }
-
-        function renderCodex() {
-            const query = document.getElementById('codex-search').value.toLowerCase();
-            
-            const charGrid = document.getElementById('codex-chars-grid');
-            charGrid.innerHTML = '';
-            RAW_CHARACTERS
-                .filter(c => c.name.toLowerCase().includes(query) || c.role.toLowerCase().includes(query) || c.skillName.toLowerCase().includes(query))
-                .forEach(c => {
-                    const card = document.createElement('div');
-                    card.className = 'bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-2 text-xs hover:border-amber-500/50 transition';
-                    card.innerHTML = `
-                        <div class="flex items-center justify-between border-b border-slate-800 pb-2">
-                            <span class="font-bold text-sm text-slate-100">${c.name}</span>
-                            <span class="px-2 py-0.5 rounded bg-blue-900/50 border border-blue-700 text-blue-300 font-semibold">${c.role}</span>
-                        </div>
-                        <div class="grid grid-cols-4 gap-1 text-center font-mono py-1 bg-slate-800/50 rounded">
-                            <div><span class="text-slate-500 block text-[10px]">物攻</span><span class="text-amber-400 font-bold">${c.phy}</span></div>
-                            <div><span class="text-slate-500 block text-[10px]">魔攻</span><span class="text-purple-400 font-bold">${c.mag}</span></div>
-                            <div><span class="text-slate-500 block text-[10px]">防禦</span><span class="text-blue-400 font-bold">${c.def}</span></div>
-                            <div><span class="text-slate-500 block text-[10px]">速度</span><span class="text-emerald-400 font-bold">${c.spd}</span></div>
-                        </div>
-                        <div>
-                            <span class="text-slate-400 font-semibold block text-[11px]">天生招式：<span class="text-amber-300">${c.skillName}</span> (${c.skillType})</span>
-                            <p class="text-slate-300 mt-1 leading-relaxed">${c.skillDesc || '無特殊描述'}</p>
-                            ${c.hasCC === '是' ? `<p class="text-red-400 mt-1 font-semibold">控制/附加：${c.ccDesc}</p>` : ''}
-                        </div>
-                    `;
-                    charGrid.appendChild(card);
-                });
-
-            const skillGrid = document.getElementById('codex-skills-grid');
-            skillGrid.innerHTML = '';
-            RAW_SKILLS
-                .filter(s => s.name.toLowerCase().includes(query) || s.trigger.toLowerCase().includes(query))
-                .forEach(s => {
-                    const card = document.createElement('div');
-                    card.className = 'bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-2 text-xs hover:border-amber-500/50 transition';
-                    card.innerHTML = `
-                        <div class="flex items-center justify-between border-b border-slate-800 pb-2">
-                            <span class="font-bold text-sm text-amber-300">${s.name}</span>
-                            <span class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300 font-semibold">${s.trigger}</span>
-                        </div>
-                        <p class="text-slate-300 leading-relaxed">${s.desc}</p>
-                    `;
-                    skillGrid.appendChild(card);
-                });
-        }
-    </script>
+        return {
+          currentTab,
+          battleMode,
+          teamA,
+          teamB,
+          battleLogs,
+          currentRound,
+          battleInProgress,
+          isAutoPlaying,
+          winner,
+          rawCharacters: RAW_CHARACTERS,
+          rawSkills: RAW_SKILLS,
+          charSearch,
+          skillSearch,
+          filteredCharacters,
+          filteredSkills,
+          tooltip,
+          showTooltip,
+          hideTooltip,
+          changeBattleMode,
+          availableCharacters,
+          availableSkills,
+          onCharacterSelect,
+          onSkillSelect,
+          getCharData,
+          randomizeTeams,
+          getHpPercent,
+          activeStatuses,
+          getStatusLabel,
+          getStatusBadgeClass,
+          getLogStyle,
+          getAliveCount,
+          startBattle,
+          stepTurn,
+          toggleAutoPlay,
+          resetBattle
+        };
+      }
+    }).mount('#app');
+  </script>
 </body>
 </html>
