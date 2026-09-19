@@ -212,34 +212,34 @@
         // Database definitions
         const RAW_CHARACTERS = [
             { name: "炎拳", role: "輸出", phy: 10, mag: 5, def: 0, spd: 5, skill: "炎拳", trigger: "主動", desc: "必須要在焚燒狀態才可使用，使用過後防禦歸零", ctrl: "焚燒" },
-            { name: "10式戦車", role: "全能", phy: 9, mag: 0, def: 5, spd: 6, skill: "10式 120mm 装弾筒付翼安定徹甲弾", trigger: "主動", desc: "對選定目標造成 615 - 目標防禦力 × 15 的傷害", ctrl: "焚燒" },
+            { name: "10式戦車", role: "全能", phy: 9, mag: 0, def: 5, spd: 6, skill: "10式 120mm 装弾筒付翼安定徹甲弾", trigger: "主動", desc: "以自身物攻為基準，造成300%物攻基準的無視防禦物理傷害，並附加焚燒", ctrl: "焚燒" },
             { name: "t3", role: "輸出", phy: 7, mag: 0, def: 3, spd: 10, skill: "擲骰", trigger: "被動", desc: "普攻時隨機增傷10%~60%。為60%時施加恐懼；為10%或失敗時使我方技窮並增傷60%", ctrl: "恐懼" },
             { name: "家暴王", role: "輸出", phy: 10, mag: 0, def: 4, spd: 8, skill: "家暴神拳", trigger: "主動", desc: "造成高額物理傷害並破盾", ctrl: "破盾" },
             { name: "屏東公園的500快阿姨", role: "輸出", phy: 0, mag: 10, def: 0, spd: 10, skill: "500塊來一次", trigger: "回合技", desc: "20%機率被抓（監禁），否則造成魔法傷害並施加虛弱", ctrl: "虛弱" },
             { name: "t2", role: "輔助", phy: 0, mag: 10, def: 5, spd: 5, skill: "補丁", trigger: "被動", desc: "普攻時將50%魔攻轉治療最慢隊友；若自身技窮則全隊治療並為恐懼目標加深恐懼", ctrl: "恐懼" },
             { name: "究極抖M王者", role: "坦克", phy: 0, mag: 10, def: 10, spd: 0, skill: "狠狠的肏我", trigger: "被動", desc: "受擊時將受傷轉為魔攻並強力誘惑（嘲諷且降低敵方傷害）", ctrl: "嘲諷" },
             { name: "先肏你媽在杜瑞拉", role: "回復", phy: 0, mag: 7, def: 1, spd: 10, skill: "你媽超爽", trigger: "回合技", desc: "利用魔法攻擊力回復自己或任一隊友高額生命", ctrl: "無" },
-            { name: "露娜", role: "輔助", phy: 10, mag: 10, def: 0, spd: 0, skill: "活下去", trigger: "被動", desc: "入場嘲諷對手。死亡時將自身全數值全數疊加給隊友「炎拳」", ctrl: "嘲諷" },
+            { name: "露娜", role: "輔助", phy: 10, mag: 10, def: 0, spd: 0, skill: "活下去", trigger: "被動", desc: "入場嘲諷對手。死亡時將自身全數值全數疊加給己方存活隊友；若隊伍中存在「炎拳」則優先疊加給「炎拳」，否則隨機選擇一名存活隊友", ctrl: "嘲諷" },
             { name: "t王", role: "輸出", phy: 9, mag: 9, def: 2, spd: 0, skill: "欲戴王冠 必承其重", trigger: "回合技", desc: "溢出治療轉為[王冠]。回合開始時將物魔及王冠總值轉為強攻，重擊帶恐懼之敵", ctrl: "無" },
             { name: "喝酒司機", role: "輔助", phy: 2, mag: 8, def: 5, spd: 8, skill: "喝不喝", trigger: "回合技", desc: "喝酒判定：20%猝死、30%監禁、50%獲得自信（傷害翻倍）", ctrl: "無" },
-            { name: "薩恩", role: "輸出", phy: 2, mag: 8, def: 4, spd: 6, skill: "神罰「炎拳」", trigger: "主動", desc: "可處死我方存活隊員，完全吸收其數值並永久替換天生技能", ctrl: "無" },
+            { name: "薩恩", role: "輸出", phy: 2, mag: 8, def: 4, spd: 6, skill: "神罰「炎拳」", trigger: "主動", desc: "可處死我方存活隊員，完全吸收其數值；處死後立即以該隊員的技能永久替換「神罰「炎拳」」，之後不再保留原技能", ctrl: "無" },
             { name: "黑手", role: "輸出", phy: 10, mag: 10, def: 3, spd: 7, skill: "見沒見過黑社會", trigger: "追擊", desc: "普攻後30%機率打出黑閃（基礎傷害+200%）", ctrl: "無" },
             { name: "用覽趴共九陶", role: "坦克", phy: 0, mag: 0, def: 10, spd: 0, skill: "挖ㄟ覽趴鬮里害", trigger: "被動", desc: "75%機率無視所有傷害與控制，並強制嘲諷敵方全體", ctrl: "無" },
             { name: "BMPT-72", role: "輸出", phy: 8, mag: 0, def: 8, spd: 4, skill: "30 mm 2A42 機炮", trigger: "主動", desc: "75%使目標速度歸零且無法行動/繳械，25%直接摧毀目標", ctrl: "繳械" },
             { name: "凱斯芒斯特(CAS Monster)", role: "輔助", phy: 10, mag: 2, def: 0, spd: 8, skill: "Kh-38MT", trigger: "被動", desc: "回合開始發射6枚飛彈，80%直接摧毀目標，20%繳械及無法行動", ctrl: "繳械" },
             { name: "廁所裡的單親媽媽", role: "輔助", phy: 0, mag: 10, def: 0, spd: 10, skill: "生小孩", trigger: "被動", desc: "召喚100HP/100SPD寶寶，寶寶發動「自食胎盤」立即行動施加恐懼", ctrl: "恐懼" },
             { name: "國士無雙", role: "輔助", phy: 0, mag: 10, def: 8, spd: 2, skill: "十三面", trigger: "被動", desc: "開局4回合無法行動/無法被選中。隨後聽牌摸牌，25%胡牌（即死）或自摸480魔傷", ctrl: "無" },
-            { name: "黃伯超", role: "輸出", phy: 10, mag: 0, def: 5, spd: 5, skill: "超派鐵拳", trigger: "被動", desc: "扣除最慢隊友100血，使自身物攻3倍且無視對方防禦力重擊", ctrl: "破盾" },
-            { name: "劉偉建", role: "回復", phy: 6, mag: 10, def: 4, spd: 0, skill: "超甲組的醋飯超難吃", trigger: "追擊", desc: "扣隊友100血，獲得嘲諷且魔攻翻3倍打出反擊", ctrl: "嘲諷" },
+            { name: "黃伯超", role: "輸出", phy: 10, mag: 0, def: 5, spd: 5, skill: "超派鐵拳", trigger: "被動", desc: "扣除最慢隊友100生命，使自身物攻3倍，並以物攻基準造成高額無視防禦物理傷害", ctrl: "破盾" },
+            { name: "劉偉建", role: "回復", phy: 6, mag: 10, def: 4, spd: 0, skill: "超甲組的醋飯超難吃", trigger: "追擊", desc: "扣除我方隊友100生命，獲得嘲諷且魔攻翻3倍；以翻倍後魔攻為基準造成高額魔法傷害", ctrl: "嘲諷" },
             { name: "消波塊", role: "全能", phy: 10, mag: 0, def: 10, spd: 0, skill: "裡面的人", trigger: "被動", desc: "造成單體現有血量80%傷害，全體監禁1回合，隨後自身退場", ctrl: "無" },
             { name: "謝新達", role: "輔助", phy: 10, mag: 0, def: 5, spd: 5, skill: "豬大哥沒死", trigger: "被動", desc: "血量折半但有2條命。首次死亡變身「中華民國總統」，物攻2倍且全體繳械", ctrl: "繳械" },
             { name: "牢大科比", role: "坦克", phy: 10, mag: 0, def: 0, spd: 10, skill: "牢大想你了", trigger: "被動", desc: "受擊時50%機率完全免疫所有傷害", ctrl: "無" },
             { name: "謝羿捷", role: "全能", phy: 10, mag: 5, def: 2, spd: 3, skill: "奇蹟大獎", trigger: "主動", desc: "抽獎：扳手(75%物傷)、靜思語(150%魔傷+2控制)、鐵鏟(200%破盾物傷)、三角錐(數值翻倍+全發動)", ctrl: "破盾" },
             { name: "防禦盾", role: "坦克", phy: 10, mag: 0, def: 10, spd: 0, skill: "防禦盾10%", trigger: "被動", desc: "受傷8倍、獲得嘲諷；血量固定100但擁有10條命", ctrl: "嘲諷" },
             { name: "真究極無敵NTR戰士", role: "全能", phy: 3, mag: 8, def: 9, spd: 1, skill: "再不回家幹你媽媽", trigger: "主動", desc: "施加嘲諷與恐懼；對累積2層嘲諷之目標發動專屬大招【真‧NTR降臨】(800魔傷+奪取50%攻擊力+混亂)", ctrl: "恐懼/混亂" },
-            { name: "柯文哲", role: "輸出", phy: 0, mag: 10, def: 3, spd: 7, skill: "民進黨才是共匪", trigger: "主動", desc: "造成破盾500魔傷並施加背信罪，滿2層觸發【監禁】2回合", ctrl: "監禁" },
+            { name: "柯文哲", role: "輸出", phy: 0, mag: 10, def: 3, spd: 7, skill: "民進黨才是共匪", trigger: "主動", desc: "造成250%魔攻基準的無視防禦魔法傷害並施加背信罪，滿2層觸發【監禁】2回合", ctrl: "監禁" },
             { name: "晨晨", role: "回復", phy: 0, mag: 3, def: 7, spd: 10, skill: "靠我力量", trigger: "被動", desc: "隊友受擊時提升200魔攻並反擊，補血70%、全隊加速50%並解除負面", ctrl: "無" },
-            { name: "竹子", role: "輔助", phy: 10, mag: 0, def: 5, spd: 5, skill: "雨後春筍", trigger: "被動", desc: "受擊超過500血時反彈200傷害並施加虛弱", ctrl: "虛弱" },
+            { name: "竹子", role: "輔助", phy: 10, mag: 0, def: 5, spd: 5, skill: "雨後春筍", trigger: "被動", desc: "受擊超過500血時反彈100%物攻基準的物理傷害並施加虛弱", ctrl: "虛弱" },
             { name: "Chance", role: "全能", phy: 5, mag: 5, def: 5, spd: 5, skill: "叮！up up up", trigger: "回合技", desc: "超複雜機率表：25%傷害、5%全隊滿血、1%九千億即死、0.01%直接勝利", ctrl: "無" },
             { name: "假面騎士Chalice", role: "輸出", phy: 10, mag: 0, def: 5, spd: 5, skill: "Wild Form 狂野型態", trigger: "被動", desc: "受擊累積紅心(13張)變身狂野型態(數值2倍)，解鎖主動技能 Wild Cyclone", ctrl: "無" },
             { name: "假面騎士blade", role: "全能", phy: 10, mag: 0, def: 2, spd: 8, skill: "King Form 皇帝形態", trigger: "被動", desc: "受擊累積黑桃，任三花色滿13張變身皇帝形態(數值5倍)，解鎖 Royal Straight Flush", ctrl: "無" },
@@ -249,8 +249,8 @@
             { name: "巧克力", role: "輔助", phy: 0, mag: 0, def: 10, spd: 10, skill: "老大該吃巧克力了", trigger: "主動", desc: "扣200血使最強物攻隊友立即行動一次（機率型隊友行動兩次），獲得嘲諷", ctrl: "嘲諷" },
             { name: "梁念容LV.999", role: "全能", phy: 10, mag: 10, def: 10, spd: 10, skill: "別管問就是全能", trigger: "回合技", desc: "秒殺敵方全體、滿血恢復我方、賦予全負面、可復活10次", ctrl: "無" },
             { name: "陳星偉", role: "輔助", phy: 10, mag: 10, def: 0, spd: 0, skill: "哥哥你為什麼在打手槍", trigger: "被動", desc: "每次自己行動回合，傷害累積乘1.5倍", ctrl: "無" },
-            { name: "陳守琦", role: "全能", phy: 10, mag: 0, def: 9, spd: 1, skill: "我看你是太久沒被我操了", trigger: "追擊", desc: "重擊敵方物攻最高者，賦予全負面1回合且無視防禦，全隊恢復400血", ctrl: "全負面" },
-            { name: "陳米荻", role: "輸出", phy: 0, mag: 10, def: 5, spd: 5, skill: "詭異貓叫", trigger: "回合技", desc: "可愛的喵一下，造成高額魔法傷害並恢復傷害2倍生命", ctrl: "無" },
+            { name: "陳守琦", role: "全能", phy: 10, mag: 0, def: 9, spd: 1, skill: "我看你是太久沒被我操了", trigger: "追擊", desc: "重擊敵方物攻最高者，賦予全負面1回合且無視防禦；全隊恢復80%自身物攻基準的生命值", ctrl: "全負面" },
+            { name: "陳米荻", role: "輸出", phy: 0, mag: 10, def: 5, spd: 5, skill: "詭異貓叫", trigger: "回合技", desc: "可愛的喵一下，造成150%魔攻基準的魔法傷害，並恢復造成傷害的2倍生命", ctrl: "無" },
             { name: "戰斬", role: "坦克", phy: 5, mag: 4, def: 5, spd: 6, skill: "焙樋咎逝鷂樋茴覷", trigger: "被動", desc: "單回合團隊受傷超過1000觸發強力反擊", ctrl: "無" }
         ];
 
@@ -258,10 +258,10 @@
             { name: "無額外通用技能", trigger: "無", desc: "僅使用角色天生技能" },
             { name: "在將對方燒成灰燼前不會停下來的火焰", trigger: "被動", desc: "回合結束無焚燒則+1層；攻擊或受擊時100%為對方附上1~3層【焚燒】(最多15層)" },
             { name: "家暴神拳", trigger: "主動", desc: "超大力的家暴神拳，造成高額物理傷害並破盾" },
-            { name: "修補", trigger: "主動", desc: "回復 100 點血量" },
-            { name: "支援", trigger: "主動", desc: "選擇我方速度最慢的角色，回復 100 點血量" },
-            { name: "攻擊", trigger: "主動", desc: "對敵方單體造成 100 點物理傷害" },
-            { name: "斬擊", trigger: "被動", desc: "普攻後額外造成 100 點物理傷害" },
+            { name: "修補", trigger: "主動", desc: "以自身魔攻為基準，回復100%魔攻基準的生命值" },
+            { name: "支援", trigger: "主動", desc: "選擇我方速度最慢的角色，以自身魔攻為基準，回復100%魔攻基準的生命值" },
+            { name: "攻擊", trigger: "主動", desc: "以自身物攻為基準，造成100%物攻基準的物理傷害" },
+            { name: "斬擊", trigger: "被動", desc: "普攻後額外造成100%物攻基準的物理傷害" },
             { name: "硬控", trigger: "主動", desc: "給予敵方10倍攻擊Buff，但使其無法行動1回合（無視免控）" },
             { name: "王的寶座", trigger: "被動", desc: "受治療時，額外獲得(物攻+魔攻)50%的治療效果" },
             { name: "機械劍", trigger: "被動", desc: "敵方獲得Debuff時，對負面最多者造成(物攻+魔攻)75%傷害" },
@@ -270,33 +270,33 @@
             { name: "板金繃帶", trigger: "回合技", desc: "最快隊友加魔攻轉物攻；若自身有負面，最慢隊友嘲諷並獲75%治療" },
             { name: "超爽的高級電動飛機杯", trigger: "主動", desc: "提升一名角色基礎傷害100%及35點速度" },
             { name: "抽菸嗎", trigger: "主動", desc: "降低對方50%速度、20%傷害及60%最大生命上限" },
-            { name: "ㄟ你的雞雞好小", trigger: "追擊", desc: "65%機率造成400點魔法傷害及技窮" },
+            { name: "ㄟ你的雞雞好小", trigger: "追擊", desc: "65%機率造成120%魔攻基準的魔法傷害並附加技窮" },
             { name: "把經書撿起來", trigger: "追擊", desc: "最高傷害隊友攻擊後45%機率施加虛弱和恐懼" },
-            { name: "幹你媽", trigger: "回合技", desc: "造成 150 點魔法傷害" },
+            { name: "幹你媽", trigger: "回合技", desc: "以自身魔攻為基準，造成150%魔攻基準的魔法傷害" },
             { name: "教你吃你就吃.", trigger: "主動", desc: "造成恐懼和破盾" },
-            { name: "躲進你屁眼", trigger: "追擊", desc: "70%機率造成 250 點物理傷害" },
+            { name: "躲進你屁眼", trigger: "追擊", desc: "70%機率造成125%物攻基準的物理傷害" },
             { name: "最愛肛交", trigger: "被動", desc: "被攻擊時65%機率提升基礎防禦60%+300點防禦" },
-            { name: "神愛世人", trigger: "回合技", desc: "回復我方所有成員 350 點生命值" },
+            { name: "神愛世人", trigger: "回合技", desc: "回復我方所有成員350%魔攻基準的生命值" },
             { name: "幹狗屁眼", trigger: "追擊", desc: "造成傷害後65%機率追加我方總傷害50%的傷害" },
-            { name: "灌滿你的直腸", trigger: "追擊", desc: "造成傷害後追加450點傷害及虛弱" },
+            { name: "灌滿你的直腸", trigger: "追擊", desc: "造成傷害後追加225%物攻基準的物理傷害並附加虛弱" },
             { name: "接著奏樂接著幹", trigger: "追擊", desc: "60%機率再打一次" },
             { name: "關我屁事阿", trigger: "被動", desc: "受擊時50%機率無視傷害" },
-            { name: "順著網線肏你全家", trigger: "主動", desc: "造成 500 點魔法傷害及破盾" },
+            { name: "順著網線肏你全家", trigger: "主動", desc: "造成500%魔攻基準的魔法傷害並破盾" },
             { name: "看你是太久沒被我操了", trigger: "主動", desc: "機率造成全負面(含疲勞)及 9999 物傷與 9999 魔傷" },
-            { name: "一定讓你媽懷孕", trigger: "主動", desc: "造成對方 600 點魔法傷害" },
-            { name: "你老婆超愛我的大雞巴", trigger: "特殊技", desc: "造成 1000 點魔法傷害並施加全體技窮" },
+            { name: "一定讓你媽懷孕", trigger: "主動", desc: "造成600%魔攻基準的魔法傷害" },
+            { name: "你老婆超愛我的大雞巴", trigger: "特殊技", desc: "造成1000%魔攻基準的魔法傷害並施加全體技窮" },
             { name: "性感習近平", trigger: "主動", desc: "回復全隊70%最大血量，並觸發我方全體技能" },
-            { name: "直升飛機起飛囉", trigger: "回合技", desc: "每回合造成敵方一名成員焚燒及 200 點物傷" },
+            { name: "直升飛機起飛囉", trigger: "回合技", desc: "每回合對敵方一名成員附加焚燒，並造成200%物攻基準的物理傷害" },
             { name: "我是L", trigger: "被動", desc: "免疫一次致命傷害；之後每受200傷提升隊友速與防" },
-            { name: "解", trigger: "回合技", desc: "造成500點傷害，25%機率連環觸發半傷" },
+            { name: "解", trigger: "回合技", desc: "以自身最高攻擊屬性為基準，造成500%該攻擊基準的傷害；25%機率連環觸發，每次傷害減半" },
             { name: "再契象 五星級飯店收據", trigger: "被動", desc: "我方受傷>600時恢復 300 血量" },
             { name: "Wild Cyclone（狂嘯疾風）", trigger: "主動", desc: "若速/防/物不低於對手，造成2倍物傷" },
             { name: "Royal Straight Flush（皇家同花順）", trigger: "主動", desc: "對敵方全體造成高額物理傷害" },
             { name: "孤注一擲", trigger: "主動", desc: "扣100血，使謝羿捷重新抽一次能力" },
-            { name: "半夜吃火鍋", trigger: "回合技", desc: "回復 100 點血量" },
+            { name: "半夜吃火鍋", trigger: "回合技", desc: "以自身魔攻為基準，回復100%魔攻基準的生命值" },
             { name: "ALL IN", trigger: "被動", desc: "血量<250且有敵<500發動：立即行動施展主動技，若無敵死則自爆" },
-            { name: "火球術", trigger: "主動", desc: "造成 200 點傷害及焚燒" },
-            { name: "Explosion", trigger: "主動", desc: "除自己外所有人 700 傷害，自身繳械2回合" },
+            { name: "火球術", trigger: "主動", desc: "以自身最高攻擊屬性為基準，造成200%該攻擊基準的傷害並附加焚燒" },
+            { name: "Explosion", trigger: "主動", desc: "以自身最高攻擊屬性為基準，對除自己外所有人造成700%該攻擊基準的傷害；自身繳械2回合" },
             { name: "噴水", trigger: "追擊", desc: "解除隊伍所有人的焚燒效果" },
             { name: "興許是迴圈", trigger: "被動", desc: "提高60%連擊率，連擊時也觸發追擊技能" }
         ];
@@ -496,6 +496,8 @@
                 spd: charObj.spd,
                 intrinsicSkill: charObj.skill,
                 intrinsicDesc: charObj.desc,
+                replacedSkillSource: null,
+                skillReplaced: false,
                 genericSkill: genericSkillName,
                 hp: maxHp,
                 maxHp,
@@ -681,6 +683,10 @@
             if (!target || target.hp <= 0) return 0;
             return applyDamage(attacker, target, amount, type, battleState, opts);
         }
+        // 技能倍率以「該屬性×50」作為100%基準，避免固定傷害在後期失去成長性。
+        function statPower(f, stat) { return Math.max(0, Number(f?.[stat] || 0)) * 50; }
+        function mixedPower(f) { return (Math.max(0, Number(f?.phy || 0)) + Math.max(0, Number(f?.mag || 0))) * 50; }
+        function offensivePower(f) { return statPower(f, f.phy >= f.mag ? "phy" : "mag"); }
         function triggerPassiveSkills(event, actor, target, context={}) {
             const fighters = battleState.fighters.filter(f => f.hp > 0);
             fighters.forEach(f => {
@@ -779,7 +785,7 @@
 
             // Character-specific threshold passives.
             if (defender.name === "竹子" && finalDmg >= 500 && defender.hp > 0) {
-                dealRaw(defender, attacker, 200, "反彈傷害");
+                dealRaw(defender, attacker, statPower(defender,"phy"), "反彈傷害");
                 addStatus(attacker, "weakness", 1);
             }
             if (defender.name === "我是L" && defender.pendingLethalImmune === false) {
@@ -808,16 +814,7 @@
                     defender.hp = 0;
                     STATUS_KEYS.forEach(k => defender.statuses[k] = 0);
                     logMsg(`  <span class="text-rose-500 font-bold">💀 ${defender.name} 陣亡！</span>`);
-                    if (defender.name === "露娜") {
-                        const flamePunch = teamOf(defender).find(f => f.name === "炎拳" && f.hp > 0);
-                        if (flamePunch) {
-                            flamePunch.phy += defender.phy;
-                            flamePunch.mag += defender.mag;
-                            flamePunch.def += defender.def;
-                            flamePunch.spd += defender.spd;
-                            logMsg(`  <span class="text-orange-400 font-bold">🔥 露娜觸發【活下去】，將全部數值傳承給炎拳！</span>`);
-                        }
-                    }
+                    if (defender.name === "露娜") transferLunaInheritance(defender);
                 }
             }
 
@@ -825,6 +822,20 @@
             return finalDmg;
         }
 
+
+        function transferLunaInheritance(luna) {
+            if (!luna || luna._lunaTransferred) return;
+            const allies = alive(teamOf(luna)).filter(a => a.id !== luna.id);
+            if (!allies.length) return;
+            const flamePunch = allies.find(a => a.name === "炎拳");
+            const receiver = flamePunch || allies[Math.floor(Math.random() * allies.length)];
+            receiver.phy += luna.phy;
+            receiver.mag += luna.mag;
+            receiver.def += luna.def;
+            receiver.spd += luna.spd;
+            luna._lunaTransferred = true;
+            logMsg(`  <span class="text-orange-400 font-bold">🔥 露娜觸發【活下去】，將物攻、魔攻、防禦、速度全數疊加給${receiver.name}！</span>`);
+        }
 
         function checkKamenRiderCounters(defender, battleState) {
             let countersUpdated = false;
@@ -1074,9 +1085,9 @@
             // Intrinsic active skills.
             const target = getValidTarget(f, battleState);
             if (!target) return;
-            const meta = RAW_CHARACTERS.find(c=>c.name===f.name);
+            const sourceName = f.replacedSkillSource || f.name;
+            const meta = RAW_CHARACTERS.find(c=>c.name===sourceName);
             if (meta && meta.trigger === "主動") executeIntrinsicSkill(f,target);
-            else if (!meta || !["被動","追擊","回合技"].includes(meta.trigger)) performBasicAttack(f,target);
             else performBasicAttack(f,target);
 
             // Passive generic skills that are explicitly attack-follow-up are handled by doChaseSkills.
@@ -1094,7 +1105,8 @@
                 function executeIntrinsicSkill(f, target) {
             if (!f || f.hp <= 0 || !target || target.hp <= 0) return;
 
-            const special = (name, fn) => { if (f.name === name) { fn(); return true; } return false; };
+            const sourceName = f.replacedSkillSource || f.name;
+            const special = (name, fn) => { if (sourceName === name) { fn(); return true; } return false; };
 
             if (special("炎拳",()=>{
                 if (f.statuses.burn <= 0) { logMsg(`  <span class="text-slate-400">🔥 炎拳沒有焚燒，技能未能使用。</span>`); performBasicAttack(f,target,false); return; }
@@ -1103,7 +1115,7 @@
             })) return;
 
             if (special("10式戦車",()=>{
-                const dmg=Math.max(50,615-target.def*15);
+                const dmg=statPower(f,"phy")*3;
                 dealRaw(f,target,dmg,"徹甲彈傷害",{ignoreDefense:true});
                 addStatus(target,"burn",2,15);
             })) return;
@@ -1132,8 +1144,11 @@
                 if(victim){
                     f.phy+=victim.phy; f.mag+=victim.mag; f.def+=victim.def; f.spd+=victim.spd;
                     f.intrinsicSkill=victim.intrinsicSkill;
+                    f.intrinsicDesc=victim.intrinsicDesc;
+                    f.replacedSkillSource=victim.name;
+                    f.skillReplaced=true;
                     victim.hp=0;
-                    logMsg(`  <span class="text-rose-400">☠️ 薩恩處死 ${victim.name}，完全吸收其數值並接管技能！</span>`);
+                    logMsg(`  <span class="text-rose-400">☠️ 薩恩處死 ${victim.name}，完全吸收其數值；【神罰「炎拳」】永久替換為【${victim.intrinsicSkill}】！</span>`);
                 }
             })) return;
 
@@ -1168,14 +1183,14 @@
                 target.statuses.taunt=1; target.statuses.fear=1;
                 target.tauntStacks=(target.tauntStacks||0)+1;
                 if(target.tauntStacks>=2){
-                    dealRaw(f,target,800+f.mag*50,"NTR魔法傷害");
+                    dealRaw(f,target,statPower(f,"mag")*8,"NTR魔法傷害");
                     f.phy+=Math.floor(target.phy*0.5); f.mag+=Math.floor(target.mag*0.5);
                     target.statuses.confusion=2;
-                } else dealRaw(f,target,f.mag*50,"NTR魔法傷害");
+                } else dealRaw(f,target,statPower(f,"mag"),"NTR魔法傷害");
             })) return;
 
             if (special("柯文哲",()=>{
-                target.statuses.shieldBreak=1; dealRaw(f,target,500,"破盾魔法傷害",{ignoreDefense:true});
+                target.statuses.shieldBreak=1; dealRaw(f,target,statPower(f,"mag")*2.5,"破盾魔法傷害",{ignoreDefense:true});
                 target.betrayal=(target.betrayal||0)+1;
                 if(target.betrayal>=2){target.statuses.imprisoned=2;target.betrayal=0;}
             })) return;
@@ -1248,17 +1263,18 @@
             if(f.name==="黑手" && Math.random()<0.3) dealRaw(f,target,Math.max(100,Math.max(f.phy,f.mag)*50)*3,"黑閃");
             if(f.name==="陳守琦"){
                 const e=strongestEnemyPhysical(f);
-                if(e){addAllNegative(e,1);dealRaw(f,e,Math.max(200,f.phy*70),"無視防禦重擊",{ignoreDefense:true});teamOf(f).forEach(a=>heal(a,400,"陳守琦"));}
+                if(e){addAllNegative(e,1);dealRaw(f,e,statPower(f,"phy")*2.5,"無視防禦重擊",{ignoreDefense:true});teamOf(f).forEach(a=>heal(a,statPower(f,"phy")*0.8,"陳守琦"));}
             }
             if(f.name==="Garren"){}
         }
 
         function executeIntrinsicTurnSkill(f) {
+            const sourceName = f.replacedSkillSource || f.name;
             // Round-start intrinsic skills that are not generic skills.
-            if(f.name==="先肏你媽在杜瑞拉"){
-                const t=slowestAlly(f); if(t) heal(t,f.mag*50,"你媽超爽");
+            if(sourceName==="先肏你媽在杜瑞拉"){
+                const t=slowestAlly(f); if(t) heal(t,statPower(f,"mag"),"你媽超爽");
             }
-            if(f.name==="t王"){}
+            if(sourceName==="t王"){}
         }
 
 
@@ -1269,24 +1285,24 @@
             switch(sName) {
                 case "家暴神拳":
                     target.statuses.shieldBreak=1; dealRaw(f,target,Math.max(200,f.phy*70),"家暴神拳",{ignoreDefense:true}); break;
-                case "修補": heal(f,100,"修補"); break;
-                case "支援": { const t=slowestAlly(f); if(t)heal(t,100,"支援"); break; }
-                case "攻擊": dealRaw(f,target,100,"攻擊"); break;
+                case "修補": heal(f,statPower(f,"mag"),"修補"); break;
+                case "支援": { const t=slowestAlly(f); if(t)heal(t,statPower(f,"mag"),"支援"); break; }
+                case "攻擊": dealRaw(f,target,statPower(f,"phy"),"攻擊"); break;
                 case "硬控": target.phy*=10; target.mag*=10; target.statuses.imprisoned=1; break;
                 case "超爽的高級電動飛機杯": { const t=randomAlive(teamOf(f)); if(t){t.baseDamageMult=(t.baseDamageMult||1)*2;t.spd+=35;} break; }
                 case "抽菸嗎": target.spd=Math.floor(target.spd*0.5); target.statuses.damageDown=1; target.maxHp=Math.max(100,Math.floor(target.maxHp*0.4)); target.hp=Math.min(target.hp,target.maxHp); break;
-                case "幹你媽": dealRaw(f,target,150,"魔法傷害"); break;
+                case "幹你媽": dealRaw(f,target,statPower(f,"mag")*1.5,"魔法傷害"); break;
                 case "教你吃你就吃.": target.statuses.fear=1; target.statuses.shieldBreak=1; break;
-                case "順著網線肏你全家": target.statuses.shieldBreak=1; dealRaw(f,target,500,"魔法破盾傷害",{ignoreDefense:true}); break;
+                case "順著網線肏你全家": target.statuses.shieldBreak=1; dealRaw(f,target,statPower(f,"mag")*5,"魔法破盾傷害",{ignoreDefense:true}); break;
                 case "看你是太久沒被我操了":
                     if(Math.random()<0.5){addAllNegative(target,1);dealRaw(f,target,9999,"物理傷害",{ignoreDefense:true});dealRaw(f,target,9999,"魔法傷害",{ignoreDefense:true});}
                     break;
-                case "一定讓你媽懷孕": dealRaw(f,target,600,"魔法傷害"); break;
-                case "你老婆超愛我的大雞巴": dealRaw(f,target,1000,"魔法傷害"); enemiesOf(f).forEach(e=>e.statuses.disarm=1); break;
+                case "一定讓你媽懷孕": dealRaw(f,target,statPower(f,"mag")*6,"魔法傷害"); break;
+                case "你老婆超愛我的大雞巴": dealRaw(f,target,statPower(f,"mag")*10,"魔法傷害"); enemiesOf(f).forEach(e=>e.statuses.disarm=1); break;
                 case "性感習近平": teamOf(f).forEach(a=>heal(a,a.maxHp*0.7,"性感習近平")); teamOf(f).forEach(a=>{const t=getValidTarget(a,battleState);if(t)executeIntrinsicSkill(a,t);}); break;
-                case "火球術": addStatus(target,"burn",1); dealRaw(f,target,200,"火球術"); break;
-                case "Explosion": battleState.fighters.filter(x=>x.hp>0&&x.id!==f.id).forEach(x=>dealRaw(f,x,700,"Explosion")); f.statuses.disarm=2; break;
-                case "半夜吃火鍋": heal(f,100,"半夜吃火鍋"); break;
+                case "火球術": addStatus(target,"burn",1); dealRaw(f,target,offensivePower(f)*2,"火球術"); break;
+                case "Explosion": battleState.fighters.filter(x=>x.hp>0&&x.id!==f.id).forEach(x=>dealRaw(f,x,offensivePower(f)*7,"Explosion")); f.statuses.disarm=2; break;
+                case "半夜吃火鍋": heal(f,statPower(f,"mag"),"半夜吃火鍋"); break;
                 case "Wild Cyclone（狂嘯疾風）":
                     if(f.spd>=target.spd && f.def>=target.def && f.phy>=target.phy) dealRaw(f,target,f.phy*100,"Wild Cyclone"); else dealRaw(f,target,f.phy*50,"Wild Cyclone"); break;
                 case "Royal Straight Flush（皇家同花順）":
@@ -1324,14 +1340,14 @@
 
         function executeGenericChase(f,target,context={}) {
             const s=f.genericSkill;
-            if(s==="ㄟ你的雞雞好小" && Math.random()<0.65){dealRaw(f,target,400,"魔法傷害");target.statuses.disarm=1;}
+            if(s==="ㄟ你的雞雞好小" && Math.random()<0.65){dealRaw(f,target,statPower(f,"mag")*1.2,"魔法傷害");target.statuses.disarm=1;}
             if(s==="把經書撿起來" && context.damage>0 && Math.random()<0.45){target.statuses.weakness=1;target.statuses.fear=1;}
-            if(s==="躲進你屁眼" && Math.random()<0.70)dealRaw(f,target,250,"物理傷害");
+            if(s==="躲進你屁眼" && Math.random()<0.70)dealRaw(f,target,statPower(f,"phy")*1.25,"物理傷害");
             if(s==="幹狗屁眼" && Math.random()<0.65){
                 const total=battleState.fighters.filter(x=>x.team===f.team&&x.hp>0).reduce((n,x)=>n+(context.damage||0),0);
                 dealRaw(f,target,total/2,"追擊傷害");
             }
-            if(s==="灌滿你的直腸"){dealRaw(f,target,450,"追擊傷害");target.statuses.weakness=1;}
+            if(s==="灌滿你的直腸"){dealRaw(f,target,statPower(f,"phy")*2.25,"追擊傷害");target.statuses.weakness=1;}
             if(s==="接著奏樂接著幹" && Math.random()<0.60 && target.hp>0)performBasicAttack(f,target,false);
             if(s==="噴水") teamOf(f).forEach(a=>a.statuses.burn=0);
         }
@@ -1347,9 +1363,9 @@
                 const fast=fastestAlly(f);if(fast)fast.phy+=Math.floor(f.mag*0.5);
                 if(negativeCount(f)>0){const slow=slowestAlly(f);if(slow){slow.statuses.taunt=1;heal(slow,(f.mag+f.def)*0.75,"板金繃帶");}}
             }
-            if(s==="神愛世人") teamOf(f).forEach(a=>heal(a,350,"神愛世人"));
-            if(s==="直升飛機起飛囉" && t){addStatus(t,"burn",1);dealRaw(f,t,200,"直升飛機");}
-            if(s==="解" && t){let dmg=500;do{dealRaw(f,t,dmg,"解");dmg*=0.5;}while(Math.random()<0.25&&t.hp>0);}
+            if(s==="神愛世人") teamOf(f).forEach(a=>heal(a,statPower(f,"mag")*3.5,"神愛世人"));
+            if(s==="直升飛機起飛囉" && t){addStatus(t,"burn",1);dealRaw(f,t,statPower(f,"phy")*2,"直升飛機");}
+            if(s==="解" && t){let dmg=offensivePower(f)*5;do{dealRaw(f,t,dmg,"解");dmg*=0.5;}while(Math.random()<0.25&&t.hp>0);}
         }
 
         function executeXieSkill(f) {
